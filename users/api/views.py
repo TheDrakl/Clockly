@@ -3,7 +3,6 @@ from rest_framework.viewsets import generics
 from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import LoginSerializer, RegisterSerializer
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
