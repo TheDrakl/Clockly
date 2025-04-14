@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ServiceListCreateAPIView, ServiceRetrieveUpdateDestroyAPIVIew, AvailabilitySlotListCreateAPIView, AvailabilitySlotRetrieveUpdateDestroyAPIVIew, BookingSlotListCreateAPIView, BookingRetrieveUpdateDestroyAPIVIew
+from .views import ServiceListCreateAPIView, ServiceRetrieveUpdateDestroyAPIVIew, AvailabilitySlotListCreateAPIView, AvailabilitySlotRetrieveUpdateDestroyAPIVIew, BookingSlotListCreateAPIView, BookingRetrieveUpdateDestroyAPIVIew, DashboardAPIView, BulkAvailabilitySlotCreateAPIView
 
 
 urlpatterns = [
@@ -11,10 +11,12 @@ urlpatterns = [
     path('availability-slots/', AvailabilitySlotListCreateAPIView.as_view(), name='slots'),
     path('availability-slots/<int:id>/', AvailabilitySlotRetrieveUpdateDestroyAPIVIew.as_view(), name='slot-detail'),
 
+    path('availability-slots/bulk/', BulkAvailabilitySlotCreateAPIView.as_view(), name='bulk-upload-slots'),
+
     # Booking
     path('bookings/', BookingSlotListCreateAPIView.as_view(), name='bookings'),
     path('bookings/<int:id>/', BookingRetrieveUpdateDestroyAPIVIew.as_view(), name='booking-detai;'),
 
-    
+    path('me/', DashboardAPIView.as_view(), name='dashboard')
 
 ]
