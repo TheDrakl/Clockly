@@ -1,5 +1,6 @@
 from django.db import models
 from backend.settings import AUTH_USER_MODEL
+from datetime import datetime
 
 class Service(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='services')
@@ -31,13 +32,28 @@ class AvailabilitySlot(models.Model):
     
     def __str__(self):
         return f'{self.user.email}: {self.date} {self.start_time} - {self.end_time}'
+    
+
+class UnavailableSlot(models.Model):
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='unavailable_slots')
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    reason = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'start_time']
 
 
 class Booking(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    slot = models.ForeignKey(AvailabilitySlot, on_delete=models.CASCADE)
-
+    slot = models.ForeignKey(AvailabilitySlot, on_delete=models.CASCADE)  # still useful
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    
     customer_name = models.CharField(max_length=50)
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=20, blank=True)
@@ -45,6 +61,6 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     confirmed = models.BooleanField(default=True)
-    
+
     def __str__(self):
-        return f'Booking for {self.service.name} with {self.user.email} at {self.slot}'
+        return f'Booking for {self.service.name} at {self.start_time} on {self.slot.date}'
