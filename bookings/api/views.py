@@ -84,9 +84,7 @@ class BookTimeView(APIView):
             end_time=end_time
         )
 
-        # Optionally: mark slot as booked (if you're not allowing multi-bookings)
-        slot.is_booked = True
-        slot.save()
+        
 
         return Response({"message": "Booking confirmed!"}, status=201)
 

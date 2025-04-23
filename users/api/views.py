@@ -5,6 +5,10 @@ from rest_framework import status
 from .serializers import LoginSerializer, RegisterSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from ..models import CustomUser
+
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 
 class LoginAPIView(APIView):
@@ -42,3 +46,33 @@ class RegisterAPIView(APIView):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                         
+
+class GoogleAuthAPIView(APIView):
+    def post(self, request):
+        token = self.request.data.get('token')
+        if not token:
+            return Response({"error": "Token required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+            email = idinfo['email']
+            name = idinfo.get('name', '')
+            picture = idinfo.get('picture')
+
+            user, created = CustomUser.objects.get_or_create(email=email, defaults={
+                'username': email,
+                'username': name,
+            })
+
+            refresh = RefreshToken.for_user(user)
+            access = AccessToken.for_user(user)
+
+            return Response({
+                "access_token": str(access),
+                "refresh_token": str(refresh)
+            }, status=status.HTTP_200_OK)
+        
+        except ValueError:
+            return Response({
+                "error": "Invalid token"
+            }, status=status.HTTP_400_BAD_REQUEST)

@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import LoginAPIView, RegisterAPIView
+from .views import LoginAPIView, RegisterAPIView, GoogleAuthAPIView
 
 urlpatterns = [
     # JWT Token Endpoints
@@ -10,5 +10,8 @@ urlpatterns = [
 
     # Login Endpoints
     path('login/', LoginAPIView.as_view(), name='login'),
-    path('register/', RegisterAPIView.as_view(), name='register')
+    path('register/', RegisterAPIView.as_view(), name='register'),
+
+    # OAuth Endpoints
+    path('oauth/google/', GoogleAuthAPIView.as_view(), name='google-auth')
 ]
