@@ -36,12 +36,16 @@ class LoginAPIView(APIView):
 
 class RegisterAPIView(APIView):
     serializer_class = RegisterSerializer
+    # throttle_classes = 
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
             email = serializer.validated_data['email']
+
+            VerificationCode.objects.filter(email=email).delete()
+
             create_verification_code(email=email)
 
             return Response({
@@ -68,6 +72,7 @@ class VerifyCodeAPIView(APIView):
                 return Response({"error": "Verification code has expired!"}, status=status.HTTP_400_BAD_REQUEST)
                     
             user = serializer.save()
+            VerificationCode.objects.filter(email=user.email).delete()
             send_registration_success(user_email=user.email)
             access_token = AccessToken.for_user(user)
             refresh_token = RefreshToken.for_user(user)

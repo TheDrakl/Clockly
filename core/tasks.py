@@ -3,6 +3,8 @@ from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from ics import Calendar, Event
 from io import BytesIO
+from users.models import VerificationCode
+from django.utils import timezone
 
 @shared_task
 def send_appointment_email(customer_name, service_name, appointment_date, start_time, end_time, customer_email):
@@ -97,3 +99,7 @@ def send_registration_success(user_email):
         [user_email],
         fail_silently=True,
     )
+
+@shared_task
+def delete_expired_codes():
+    VerificationCode.objects.filter(expiration_date__lt=timezone.now()).delete()

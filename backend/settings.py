@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'users',
     'clients',
     'bookings',
+
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
