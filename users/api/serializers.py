@@ -36,10 +36,18 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Passwords must match!')
         return data
     
+
+class VerifyTokenSerializer(serializers.ModelSerializer):
+    verification_code = serializers.CharField()
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'password', 'username', 'verification_code']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
     def create(self, validated_data):
-        validated_data.pop('password2')
-
-        user = User.objects.create(email=validated_data['email'], username=validated_data['username'], password=validated_data['password'])
+        user = User.objects.create(email=validated_data['email'], username=validated_data['username'], password=validated_data['password'], is_active=True)
         return user
-
-
+    

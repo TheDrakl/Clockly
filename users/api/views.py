@@ -2,10 +2,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import generics
 from rest_framework.views import APIView
 from rest_framework import status
-from .serializers import LoginSerializer, RegisterSerializer
+from .serializers import LoginSerializer, RegisterSerializer, VerifyTokenSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-from ..models import CustomUser
+from core.tasks import send_registration_code
+from ..models import CustomUser, VerificationCode
+from core.tasks import send_registration_code
+from core.verification_code import create_verification_code
+from django.http import Http404
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -28,19 +32,45 @@ class LoginAPIView(APIView):
             }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
-    
+
 
 class RegisterAPIView(APIView):
     serializer_class = RegisterSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
+            email = serializer.validated_data['email']
+            create_verification_code(email=email)
+
+            return Response({
+                "Verification code was sent!"
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class VerifyCodeAPIView(APIView):
+    serializer_class = VerifyTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            verification_code = serializer.validated_data['verification_code']
+            try: 
+                verification_code_obj = get_object_or_404(VerificationCode, email=serializer.validated_data['email'], code=verification_code)
+            except Http404:
+                return Response({"error": "Invalid verification code!"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if verification_code_obj.is_expired():
+                return Response({"error": "Verification code has expired!"}, status=status.HTTP_400_BAD_REQUEST)
+                    
             user = serializer.save()
             access_token = AccessToken.for_user(user)
             refresh_token = RefreshToken.for_user(user)
             return Response({
-                "msg": "Account was created successfully!",
                 "access_token": str(access_token),
                 "refresh_token": str(refresh_token),
             }, status=status.HTTP_200_OK)

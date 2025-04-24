@@ -11,6 +11,7 @@ from clients.utils.available_times import generate_available_times
 from datetime import datetime
 from .serializers import BookingSerializer
 from datetime import timedelta
+from core.tasks import send_appointment_email
 
 class AvailableTimesView(APIView):
     permission_classes = [AllowAny]
@@ -84,7 +85,15 @@ class BookTimeView(APIView):
             end_time=end_time
         )
 
-        
+        send_appointment_email.delay(
+            customer_name=customer_name,
+            service_name=service.name,
+            appointment_date=date_obj,
+            start_time=start_time,
+            end_time=end_time,
+            customer_email=customer_email
+        )
+
 
         return Response({"message": "Booking confirmed!"}, status=201)
 
