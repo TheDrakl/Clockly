@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from core.tasks import send_registration_code, send_registration_success
 from ..models import CustomUser, VerificationCode
 from core.tasks import send_registration_code
-from core.verification_code import create_verification_code
+from core.utils.verification import create_verification_code
 from django.http import Http404
 
 from google.oauth2 import id_token

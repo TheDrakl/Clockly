@@ -21,7 +21,6 @@ class AvailabilitySlot(models.Model):
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    is_booked = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
@@ -50,7 +49,7 @@ class UnavailableSlot(models.Model):
 class Booking(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    slot = models.ForeignKey(AvailabilitySlot, on_delete=models.CASCADE)  # still useful
+    slot = models.ForeignKey(AvailabilitySlot, on_delete=models.CASCADE)
     start_time = models.TimeField()
     end_time = models.TimeField()
     

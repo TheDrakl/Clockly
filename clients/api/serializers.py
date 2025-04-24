@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from ..models import Service, AvailabilitySlot, Booking
-from core.enums import Weekday
+from core.utils.enums import Weekday
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:

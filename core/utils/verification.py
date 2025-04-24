@@ -3,7 +3,7 @@ import string
 from django.utils import timezone
 from datetime import timedelta
 from users.models import VerificationCode
-from .tasks import send_registration_code
+from ..tasks import send_registration_code
 
 def generate_verification_code():
     return ''.join(random.choices(string.digits, k=6))
