@@ -74,3 +74,26 @@ def send_registration_code(user_email, security_code):
         [user_email],
         fail_silently=True,
     )
+
+@shared_task 
+def send_registration_success(user_email):
+    subject = "Welcome to Clockly!"
+    message = f"""
+    Hello,
+
+    Your account has been successfully verified and activated 🎉
+
+    You can now log in and start using Clockly!
+
+    If you didn’t create this account, please contact our support team immediately.
+
+    Best regards,  
+    The Clockly Team
+    """
+    send_mail(
+        subject,
+        message,
+        settings.EMAIL_HOST_USER,
+        [user_email],
+        fail_silently=True,
+    )

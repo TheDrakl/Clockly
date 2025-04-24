@@ -5,7 +5,7 @@ from rest_framework import status
 from .serializers import LoginSerializer, RegisterSerializer, VerifyTokenSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-from core.tasks import send_registration_code
+from core.tasks import send_registration_code, send_registration_success
 from ..models import CustomUser, VerificationCode
 from core.tasks import send_registration_code
 from core.verification_code import create_verification_code
@@ -68,6 +68,7 @@ class VerifyCodeAPIView(APIView):
                 return Response({"error": "Verification code has expired!"}, status=status.HTTP_400_BAD_REQUEST)
                     
             user = serializer.save()
+            send_registration_success(user_email=user.email)
             access_token = AccessToken.for_user(user)
             refresh_token = RefreshToken.for_user(user)
             return Response({
