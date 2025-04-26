@@ -22,15 +22,19 @@ echo "PostgreSQL started"
 
 # Only run migrations and superuser creation if this is the web service
 if [ "$1" = "gunicorn" ]; then
+  sleep 5
   echo "Running migrations..."
   python manage.py migrate --noinput
-  python manage.py migrate django_celery_beat
-  
+
+  echo "Collecting static files..."
+  python manage.py collectstatic --noinput
+
   echo "Creating superuser..."
   echo "from django.contrib.auth import get_user_model; \
   User = get_user_model(); \
   User.objects.filter(email='denismelnyk@icloud.com').exists() or \
   User.objects.create_superuser('denismelnyk@icloud.com', 'denys', '123')" | python manage.py shell
+
 else
   # For Celery services, wait until migrations are complete
   echo "Waiting for migrations to complete..."
@@ -44,5 +48,4 @@ else
   echo "Migrations verified as complete"
 fi
 
-# Execute the original command
 exec "$@"

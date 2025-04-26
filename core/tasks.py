@@ -5,14 +5,26 @@ from ics import Calendar, Event
 from io import BytesIO
 from users.models import VerificationCode
 from django.utils import timezone
+from datetime import datetime
 
 @shared_task
 def send_appointment_email(customer_name, service_name, appointment_date, start_time, end_time, customer_email):
+    start_datetime = timezone.localtime(
+        timezone.make_aware(
+            datetime.strptime(f"{appointment_date} {start_time}", "%Y-%m-%d %H:%M:%S")
+        )
+    )
+    end_datetime = timezone.localtime(
+        timezone.make_aware(
+            datetime.strptime(f"{appointment_date} {end_time}", "%Y-%m-%d %H:%M:%S")
+        )
+    )
+
     event = Event()
     event.name = f"Appointment: {service_name}"
-    event.begin = f"{appointment_date} {start_time}"
-    event.end = f"{appointment_date} {end_time}"
-    event.location = "Your business location" 
+    event.begin = start_datetime
+    event.end = end_datetime
+    event.location = "Your business location"
     event.description = f"Your appointment for {service_name}."
 
     calendar = Calendar()
@@ -28,18 +40,19 @@ def send_appointment_email(customer_name, service_name, appointment_date, start_
 
     <p>Thank you for booking your appointment with us!</p>
 
-    <p>Here are the details of your appointment:</p>
-
-    Service: {service_name}
-    Date: {appointment_date}
-    Start Time: {start_time}
-    End Time: {end_time}
+    <p><strong>Appointment Details:</strong></p>
+    <ul>
+    <li>Service: {service_name}</li>
+    <li>Date: {appointment_date}</li>
+    <li>Start Time: {start_time}</li>
+    <li>End Time: {end_time}</li>
+    </ul>
 
     <p>We look forward to seeing you!</p>
 
     <p>If you have any questions or need to reschedule, feel free to contact us.</p>
 
-    <p>Best regards, <br>Clockly Team/p>
+    <p>Best regards,<br>Clockly Team</p>
     """
 
     email = EmailMessage(
@@ -49,9 +62,15 @@ def send_appointment_email(customer_name, service_name, appointment_date, start_
         [customer_email],
     )
     email.content_subtype = 'html'
-    email.attach('appointment.ics', ics_file.read(), 'text/calendar')
+    filename = f"appointment-{customer_name.replace(' ', '_')}-{appointment_date}.ics"
+    email.attach(filename, ics_file.read(), 'text/calendar')
 
     email.send(fail_silently=False)
+    # try:
+    #     email.send(fail_silently=False)
+    # except Exception as e:
+    #     logger.error(f"Failed to send appointment email to {customer_email}: {str(e)}")
+    #     raise
 
 def format_code(code):
     return ' '.join([code[i:i+3] for i in range(0, len(code), 3)])

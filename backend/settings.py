@@ -1,7 +1,7 @@
-from pathlib import Path
-from dotenv import load_dotenv
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -100,9 +100,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -172,6 +171,6 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 # CELERY_ACCEPT_CONTENT = ['json']
 # CELERY_TASK_SERIALIZER = 'json'
 
-# settings.py
-CELERY_BROKER_URL = 'redis://redis:6379/0'  # ← Use 'redis' as hostname
+# For Docker
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'

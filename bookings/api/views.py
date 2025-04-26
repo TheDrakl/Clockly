@@ -40,7 +40,7 @@ class BookTimeView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         user = get_user_model().objects.get(username=username)
-        service = Service.objects.get(id=service_id)
+        service = get_object_or_404(Service, id=service_id)
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         
         start_time = serializer.validated_data['start_time']
