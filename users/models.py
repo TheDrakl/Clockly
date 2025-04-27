@@ -47,9 +47,14 @@ class VerificationCode(models.Model):
     code = models.CharField(max_length=6)
     is_verified = models.BooleanField(default=False)
     expiration_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def is_expired(self):
         return timezone.now() > self.expiration_date
+    
+    def can_resend(self):
+        time_limit = timezone.now() - timedelta(minutes=5)
+        return self.created_at < time_limit
     
     def __str__(self):
         return f"Verification Code for - {self.email}"

@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import generics
 from rest_framework.views import APIView
 from rest_framework import status
-from .serializers import LoginSerializer, RegisterSerializer, VerifyTokenSerializer
+from .serializers import LoginSerializer, RegisterSerializer, VerifyCodeSerializer, ResendCodeSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from core.tasks import send_registration_code, send_registration_success
@@ -10,9 +10,12 @@ from ..models import CustomUser, VerificationCode
 from core.tasks import send_registration_code
 from core.utils.verification import create_verification_code
 from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+from datetime import timedelta
+from django.utils import timezone
 
 
 class LoginAPIView(APIView):
@@ -44,12 +47,14 @@ class RegisterAPIView(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
 
+            user = serializer.save()
+
             VerificationCode.objects.filter(email=email).delete()
 
             create_verification_code(email=email)
 
             return Response({
-                "Verification code was sent!"
+                "detail": f"Verification code was sent to {user.email}!"
             }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -57,11 +62,12 @@ class RegisterAPIView(APIView):
 
 
 class VerifyCodeAPIView(APIView):
-    serializer_class = VerifyTokenSerializer
+    serializer_class = VerifyCodeSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            email = serializer.validated_data['email']
             verification_code = serializer.validated_data['verification_code']
             try: 
                 verification_code_obj = get_object_or_404(VerificationCode, email=serializer.validated_data['email'], code=verification_code)
@@ -71,7 +77,7 @@ class VerifyCodeAPIView(APIView):
             if verification_code_obj.is_expired():
                 return Response({"error": "Verification code has expired!"}, status=status.HTTP_400_BAD_REQUEST)
                     
-            user = serializer.save()
+            user = get_object_or_404(CustomUser, email=email)
             VerificationCode.objects.filter(email=user.email).delete()
             send_registration_success(user_email=user.email)
             access_token = AccessToken.for_user(user)
@@ -80,6 +86,34 @@ class VerifyCodeAPIView(APIView):
                 "access_token": str(access_token),
                 "refresh_token": str(refresh_token),
             }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class ResendCodeAPIView(APIView):
+    serializer_class = ResendCodeSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                code = VerificationCode.objects.get(email=email)
+            except ObjectDoesNotExist:
+                return Response({"detail": "No verification code found for this email."}, status=status.HTTP_404_NOT_FOUND)
+
+            if not code.can_resend():
+                remaining_time = code.created_at + timedelta(minutes=5) - timezone.now()
+                return Response({
+                    "detail": f"You need to wait {remaining_time.seconds} seconds before requesting a new code."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            VerificationCode.objects.filter(email=email).delete()
+            create_verification_code(email=email)
+
+            return Response({
+                "detail": f"Verification code has been resent to {email}!"
+            }, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                         
 
