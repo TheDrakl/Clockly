@@ -84,4 +84,4 @@ dmypy.json
 # Pyre
 .pyre/
 
-.DB_Store
+.DS_Store
