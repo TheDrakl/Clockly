@@ -4,21 +4,24 @@ from django.contrib.auth import authenticate, get_user_model
 
 User = get_user_model()
 
+
 class LoginSerializer(serializers.Serializer): 
     
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-
-        user = authenticate(email=data['email'], password=data['password'])
+        user = authenticate(
+            request=self.context.get('request'),
+            email=data['email'],
+            password=data['password']
+        )
 
         if user is None:
             raise serializers.ValidationError("Invalid login or password!")
         
         data['user'] = user
-        return data        
-
+        return data
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField()
@@ -48,6 +51,11 @@ class VerifyTokenSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        user = User.objects.create(email=validated_data['email'], username=validated_data['username'], password=validated_data['password'], is_active=True)
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            is_active=True
+        )
+        user.set_password(validated_data['password'])
+        user.save()
         return user
-    
