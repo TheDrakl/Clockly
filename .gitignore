@@ -11,7 +11,7 @@ env/
 *.env
 .history
 *.venv
-
+.nohup.out
 # Django
 *.log
 db.sqlite3
@@ -83,3 +83,5 @@ dmypy.json
 
 # Pyre
 .pyre/
+
+.DB_Store
