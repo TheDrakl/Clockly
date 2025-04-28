@@ -1,6 +1,7 @@
 from django.db import models
 from backend.settings import AUTH_USER_MODEL
 from datetime import datetime
+from django.utils import timezone
 
 class Service(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='services')
@@ -60,6 +61,15 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     confirmed = models.BooleanField(default=True)
+    was_reminded = models.BooleanField(default=False)
+
+    def start_datetime(self):
+        combined = datetime.combine(self.slot.date, self.start_time)
+        return timezone.make_aware(combined)
+    
+    def end_datetime(self):
+        combined = datetime.combine(self.slot.date, self.end_time)
+        return timezone.make_aware(combined)
 
     def __str__(self):
         return f'Booking for {self.service.name} at {self.start_time} on {self.slot.date}'

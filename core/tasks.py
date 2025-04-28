@@ -4,8 +4,10 @@ from django.conf import settings
 from ics import Calendar, Event
 from io import BytesIO
 from users.models import VerificationCode
+from clients.models import Booking
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.db import transaction
 
 @shared_task
 def send_appointment_email(customer_name, service_name, appointment_date, start_time, end_time, customer_email):
@@ -122,3 +124,34 @@ def send_registration_success(user_email):
 @shared_task
 def delete_expired_codes():
     VerificationCode.objects.filter(expiration_date__lt=timezone.now()).delete()
+
+@shared_task
+def send_booking_reminder():
+    send_before_time = timedelta(minutes=120)
+
+    time_now = timezone.now()
+
+    time_window_start = time_now
+    time_window_end = time_now + send_before_time
+
+    bookings = Booking.objects.all()
+
+    bookings_to_remind = [
+        booking for booking in bookings
+        if time_window_start <= booking.start_datetime() < time_window_end and not booking.was_reminded
+    ]
+
+    for booking in bookings_to_remind:
+        with transaction.atomic():
+            if not booking.was_reminded:
+                booking.was_reminded = True
+                booking.save()
+
+                send_mail_reminder(booking)
+
+def send_mail_reminder(booking):
+    subject = f"Reminder: Your booking starts soon"
+    message = f"Dear {booking.user.username},\n\nYour booking for {booking.service} is starting at {booking.start_time}. Please be prepared."
+    recipient_list = [booking.user.email]
+    
+    send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
