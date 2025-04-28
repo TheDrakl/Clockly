@@ -8,6 +8,9 @@ from clients.models import Booking
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.db import transaction
+import logging
+
+logger = logging.getLogger(__name__)
 
 @shared_task
 def send_appointment_email(customer_name, service_name, appointment_date, start_time, end_time, customer_email):
@@ -68,11 +71,7 @@ def send_appointment_email(customer_name, service_name, appointment_date, start_
     email.attach(filename, ics_file.read(), 'text/calendar')
 
     email.send(fail_silently=False)
-    # try:
-    #     email.send(fail_silently=False)
-    # except Exception as e:
-    #     logger.error(f"Failed to send appointment email to {customer_email}: {str(e)}")
-    #     raise
+    logger.info(f'Booking email was sent to {customer_email}')
 
 def format_code(code):
     return ' '.join([code[i:i+3] for i in range(0, len(code), 3)])
@@ -97,6 +96,7 @@ def send_registration_code(user_email, security_code):
         [user_email],
         fail_silently=True,
     )
+    logger.info(f'Registration code was sent to {user_email}')
 
 @shared_task 
 def send_registration_success(user_email):
@@ -120,13 +120,17 @@ def send_registration_success(user_email):
         [user_email],
         fail_silently=True,
     )
+    logger.info(f"Account was verified with verification code for {user_email}")
 
 @shared_task
 def delete_expired_codes():
     VerificationCode.objects.filter(expiration_date__lt=timezone.now()).delete()
+    logger.info("Verification codes were cleared")
 
 @shared_task
-def send_booking_reminder():
+def send_booking_reminder(booking=None):
+    if not booking is None:
+        send_mail_reminder(booking=booking)
     send_before_time = timedelta(minutes=120)
 
     time_now = timezone.now()
@@ -155,3 +159,4 @@ def send_mail_reminder(booking):
     recipient_list = [booking.user.email]
     
     send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+    logger.info(f'Reminder sent to f{recipient_list} for booking {booking.id}')
