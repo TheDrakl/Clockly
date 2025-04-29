@@ -182,11 +182,19 @@ CELERY_TASK_SERIALIZER = 'json'
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,  # important!
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'debug.log', 
+            'filename': 'debug.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -194,6 +202,26 @@ LOGGING = {
             'handlers': ['file'],
             'level': 'INFO',
             'propagate': True,
+        },
+        'clients': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'core': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Or this to catch all other logs from your project:
+        'backend': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        '': {  # root logger
+            'handlers': ['file'],
+            'level': 'INFO',
         },
     },
 }

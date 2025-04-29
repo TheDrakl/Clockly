@@ -53,6 +53,7 @@ class Booking(models.Model):
     slot = models.ForeignKey(AvailabilitySlot, on_delete=models.CASCADE)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    end_datetime = models.DateTimeField(blank=True, null=True, editable=False)
     
     customer_name = models.CharField(max_length=50)
     customer_email = models.EmailField()
@@ -67,9 +68,14 @@ class Booking(models.Model):
         combined = datetime.combine(self.slot.date, self.start_time)
         return timezone.make_aware(combined)
     
-    def end_datetime(self):
+    def computed_end_datetime(self):
         combined = datetime.combine(self.slot.date, self.end_time)
         return timezone.make_aware(combined)
+    
+    def save(self, *args, **kwargs):
+        if self.slot and self.end_time:
+            self.end_datetime = self.computed_end_datetime()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'Booking for {self.service.name} at {self.start_time} on {self.slot.date}'

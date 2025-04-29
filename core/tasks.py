@@ -10,7 +10,8 @@ from datetime import datetime, timedelta
 from django.db import transaction
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('core')
+logger.info('This is a test log from the clients module!')
 
 @shared_task
 def send_appointment_email(customer_name, service_name, appointment_date, start_time, end_time, customer_email):
@@ -122,10 +123,6 @@ def send_registration_success(user_email):
     )
     logger.info(f"Account was verified with verification code for {user_email}")
 
-@shared_task
-def delete_expired_codes():
-    VerificationCode.objects.filter(expiration_date__lt=timezone.now()).delete()
-    logger.info("Verification codes were cleared")
 
 @shared_task
 def send_booking_reminder(booking=None):
@@ -145,6 +142,12 @@ def send_booking_reminder(booking=None):
         if time_window_start <= booking.start_datetime() < time_window_end and not booking.was_reminded
     ]
 
+    count = len(bookings_to_remind)
+
+    if not bookings_to_remind:
+        logger.info("There's no bookings to remind of")
+        return
+
     for booking in bookings_to_remind:
         with transaction.atomic():
             if not booking.was_reminded:
@@ -152,6 +155,7 @@ def send_booking_reminder(booking=None):
                 booking.save()
 
                 send_mail_reminder(booking)
+    logger.info(f'{count} people received booking reminder!')
 
 def send_mail_reminder(booking):
     subject = f"Reminder: Your booking starts soon"
@@ -159,4 +163,39 @@ def send_mail_reminder(booking):
     recipient_list = [booking.user.email]
     
     send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
-    logger.info(f'Reminder sent to f{recipient_list} for booking {booking.id}')
+    logger.info(f'Reminder sent to {recipient_list} for booking {booking.id}')
+
+
+@shared_task
+def delete_expired_codes():
+    verification_codes_to_delete = VerificationCode.objects.filter(expiration_date__lt=timezone.now())
+
+    if not verification_codes_to_delete:
+        logging.info("There's no verification codes to delete!")
+        return 
+    
+    verification_codes_to_delete.delete()
+
+    logger.info("Verification codes were cleared")
+
+
+@shared_task
+def delete_old_bookings():
+    delete_after_days = timedelta(days=30)
+    time_now = timezone.now()
+
+    datetime_before = time_now - delete_after_days
+
+    bookings_to_delete = Booking.objects.filter(end_datetime__lt=datetime_before)
+
+    if not bookings_to_delete:
+        logger.info("There's no bookings to delete!")
+        return
+
+    count = bookings_to_delete.count()
+
+    bookings_to_delete.delete()
+
+    logger.info(f'{count} bookings were removed!')
+
+        
