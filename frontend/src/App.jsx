@@ -5,6 +5,9 @@ import About from './pages/About.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Profile from './pages/Profile.jsx';
+import Services from './pages/Services.jsx'
+import Bookings from './pages/Bookings.jsx';
+import Slots from './pages/Slots.jsx';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,7 +32,12 @@ function App() {
         <Link to="/">Home</Link>
         <Link to="/about">About</Link>
         {isAuthenticated ? (
+          <>
           <button type="button" onClick={handleLogOut}>Log Out</button>
+          <Link to='/services'>Services</Link>
+          <Link to='/bookings'>Bookings</Link>
+          <Link to='/slots'>Slots</Link>
+          </>
         ) : (
           <>
             <Link to="/login">Login</Link>
@@ -45,6 +53,9 @@ function App() {
         <Route path="/register" element={<Register onAuth={() => setIsAuthenticated(true)} />} />
         <Route path="/login" element={<Login onAuth={() => setIsAuthenticated(true)} />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path='/services' element={<Services />} />
+        <Route path='/bookings' element={<Bookings />} />
+        <Route path='/slots' element={<Slots />} />
       </Routes>
     </div>
   );
