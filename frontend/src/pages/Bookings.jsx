@@ -42,7 +42,7 @@ const Bookings = () => {
     e.preventDefault();
   
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/client/bookings/", {
+      const response = await fetch("http://127.0.0.1:8000/api/client/availability-slots/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,6 +56,7 @@ const Bookings = () => {
       }
   
       setShowForm(false);
+      await fetchProfileData();
     } catch (err) {
       setError(err.message);
     }

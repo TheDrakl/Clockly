@@ -80,6 +80,7 @@ def format_code(code):
 @shared_task
 def send_registration_code(user_email, security_code):
     code = format_code(security_code)
+    logger.info("Registration code started")
     message =  f"""
         Hello,
 

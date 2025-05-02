@@ -1,30 +1,25 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-export default function LoginForm({onAuth}) {
+export default function LoginForm({ onAuth }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      // Sending API request
       const response = await fetch('http://127.0.0.1:8000/api/auth/login/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Login successful:', data);
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('refresh', data.refresh_token);
-        onAuth()
+        onAuth();
       } else {
         setErrorMessage(data.message || 'Login failed');
       }
@@ -35,45 +30,58 @@ export default function LoginForm({onAuth}) {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="card w-96 bg-base-100 shadow-xl p-8">
-        <h2 className="text-center text-2xl font-semibold mb-6">Login</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 font-inter px-4">
+      <div className="w-full max-w-md bg-white shadow-md rounded-xl p-8 space-y-6">
+        <h2 className="text-3xl font-bold text-center text-gray-800">Sign In</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
               id="email"
-              name="email"
-              className="input input-bordered w-full"
-              placeholder="Enter your email"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete='email'
             />
           </div>
-          <div className="mb-4">
+
+          <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <input
               type="password"
               id="password"
-              name="password"
-              className="input input-bordered w-full"
-              placeholder="Enter your password"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete='current-password'
             />
           </div>
-          {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
-          <div className="flex items-center justify-between mb-6">
-            <button type="submit" className="btn btn-primary w-full">Login</button>
-          </div>
+
+          {errorMessage && (
+            <p className="text-sm text-red-500">{errorMessage}</p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition text-sm font-medium"
+          >
+            Login
+          </button>
         </form>
+
         <div className="text-center">
-          <a href="#" className="text-sm text-blue-500 hover:text-blue-700">Forgot password?</a>
+          <a href="#" className="text-sm text-blue-500 hover:underline">Forgot password?</a>
         </div>
-        <div className="text-center mt-4">
-          <span className="text-sm text-gray-600">Don't have an account? </span>
-          <a href="#" className="text-sm text-blue-500 hover:text-blue-700">Sign up</a>
+
+        <div className="text-center text-sm text-gray-600">
+          Don’t have an account?
+          <Link to="/register" className="ml-1 text-blue-500 hover:underline">Sign up</Link>
         </div>
       </div>
     </div>

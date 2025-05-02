@@ -19,7 +19,7 @@ def create_verification_code(email):
         expiration_date=expiration_date,
     )
 
-    send_registration_code(
+    send_registration_code.delay(
         user_email=email,
         security_code=code,
     )

@@ -78,6 +78,8 @@ class VerifyCodeAPIView(APIView):
                 return Response({"error": "Verification code has expired!"}, status=status.HTTP_400_BAD_REQUEST)
                     
             user = get_object_or_404(CustomUser, email=email)
+            user.is_active = True
+            user.save()
             VerificationCode.objects.filter(email=user.email).delete()
             send_registration_success(user_email=user.email)
             access_token = AccessToken.for_user(user)

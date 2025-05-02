@@ -44,7 +44,7 @@ function App() {
 
   return (
     <div>
-      <nav className="p-4 bg-gray-800 text-white flex gap-4">
+      <nav className="p-4 bg-gray-800 text-white flex gap-12 justify-center text-lg">
         <Link to="/">Home</Link>
         <Link to="/about">About</Link>
         {isAuthenticated ? (
@@ -53,6 +53,7 @@ function App() {
           <Link to='/services'>Services</Link>
           <Link to='/bookings'>Bookings</Link>
           <Link to='/slots'>Slots</Link>
+          <Link to="/profile">Profile</Link>
           </>
         ) : (
           <>
@@ -60,7 +61,6 @@ function App() {
             <Link to="/register">Register</Link>
           </>
         )}
-        {isAuthenticated && <Link to="/profile">Profile</Link>}
       </nav>
 
       <Routes>
