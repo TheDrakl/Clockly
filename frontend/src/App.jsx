@@ -8,6 +8,7 @@ import Profile from './pages/Profile.jsx';
 import Services from './pages/Services.jsx'
 import Bookings from './pages/Bookings.jsx';
 import Slots from './pages/Slots.jsx';
+import { jwtDecode } from 'jwt-decode';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,8 +16,23 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    if (token) {
+      isTokenExpired(token) ? handleLogOut() : setIsAuthenticated(true);
+    }
   }, []);
+
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+    try {
+    const decoded = jwtDecode(token);
+    console.log(decoded);
+    const currentTime = Date.now() / 1000;
+    return decoded.exp < currentTime;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return true;
+    }
+  }
 
   const handleLogOut = () => {
     localStorage.removeItem('token');
