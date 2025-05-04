@@ -21,4 +21,4 @@ CACHES = {
 
 # Make sure these are after all other settings
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'your_project.test_settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'backend.test_settings'
