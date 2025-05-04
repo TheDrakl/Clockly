@@ -5,6 +5,13 @@ on:
     branches: [ main ]
 
 jobs:
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
   backend:
     name: Backend - Django
     runs-on: ubuntu-latest
@@ -24,7 +31,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    env:  # Make sure Django sees these
+    env:
       SECRET_KEY: dummysecretkey123
       DEBUG: 'False'
       DB_ENGINE: django.db.backends.postgresql
@@ -33,6 +40,7 @@ jobs:
       DB_PASSWORD: 12343211234
       DB_HOST: localhost
       DB_PORT: 5432
+      DJANGO_SETTINGS_MODULE: backend.test_settings  # Moved here to ensure it's available for all commands
 
     steps:
     - uses: actions/checkout@v3
@@ -46,13 +54,24 @@ jobs:
       run: |
         cd backend
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt pytest pytest-django
 
-    - name: Run Django migrations and tests
+    - name: Run Django migrations
       run: |
         cd backend
         python manage.py migrate
-        python manage.py test
+
+    - name: Run tests
+      run: |
+        cd backend
+        pytest tests/test_user_auth.py -v  # Changed from test/ to tests/
+
+    - name: Verify test discovery
+      run: |
+        cd backend
+        echo "Test files found:"
+        find . -name "test_*.py"
+        python -m pytest --collect-only
 
   frontend:
     name: Frontend - Vue
