@@ -16,7 +16,7 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: denys
-          POSTGRES_PASSWORD: 123
+          POSTGRES_PASSWORD: 12343211234
           POSTGRES_DB: clockly
         ports:
           - 5432:5432
