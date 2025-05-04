@@ -5,9 +5,6 @@ from django.contrib.auth import get_user_model
 from django.core import mail
 from users.models import VerificationCode
 
-from django.conf import settings
-print(settings.CELERY_TASK_ALWAYS_EAGER)
-
 class UserTests(APITestCase):
 
     def setUp(self):
