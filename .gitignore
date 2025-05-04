@@ -74,7 +74,6 @@ celerybeat.pid
 *.pyd
 __pycache__/
 *.swp
-migrations/
 
 # MyPy
 .mypy_cache/

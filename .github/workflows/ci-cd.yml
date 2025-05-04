@@ -51,7 +51,6 @@ jobs:
     - name: Run Django migrations and tests
       run: |
         cd backend
-        python manage.py makemigrations
         python manage.py migrate
         python manage.py test
 
