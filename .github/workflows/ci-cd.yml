@@ -62,7 +62,7 @@ jobs:
       run: |
         cd backend
         python -m pip install --upgrade pip
-        pip install -r requirements.txt pytest pytest-django pytest-celery
+        pip install -r requirements.txt pytest pytest-django pytest-celery pytest-cov
 
     - name: Run Django migrations
       run: |
