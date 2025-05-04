@@ -9,6 +9,31 @@ jobs:
     name: Backend - Django
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: denys
+          POSTGRES_PASSWORD: 12343211234
+          POSTGRES_DB: clockly
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:  # Make sure Django sees these
+      SECRET_KEY: dummysecretkey123
+      DEBUG: 'False'
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: clockly
+      DB_USER: denys
+      DB_PASSWORD: 12343211234
+      DB_HOST: localhost
+      DB_PORT: 5432
+
     steps:
     - uses: actions/checkout@v3
 
@@ -23,9 +48,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run Django tests
+    - name: Run Django migrations and tests
       run: |
         cd backend
+        python manage.py migrate
         python manage.py test
 
   frontend:
