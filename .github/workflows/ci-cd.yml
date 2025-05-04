@@ -3,12 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-
-jobs:
-name: CI/CD Pipeline
-
-on:
-  push:
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -31,6 +26,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       SECRET_KEY: dummysecretkey123
       DEBUG: 'False'
@@ -40,12 +45,15 @@ jobs:
       DB_PASSWORD: 12343211234
       DB_HOST: localhost
       DB_PORT: 5432
-      DJANGO_SETTINGS_MODULE: backend.test_settings  # Moved here to ensure it's available for all commands
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: backend.test_settings
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      CELERY_RESULT_BACKEND: redis://localhost:6379/0
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
@@ -54,7 +62,7 @@ jobs:
       run: |
         cd backend
         python -m pip install --upgrade pip
-        pip install -r requirements.txt pytest pytest-django
+        pip install -r requirements.txt pytest pytest-django pytest-celery
 
     - name: Run Django migrations
       run: |
@@ -64,33 +72,56 @@ jobs:
     - name: Run tests
       run: |
         cd backend
-        pytest tests/test_user_auth.py -v  # Changed from test/ to tests/
+        pytest tests/test_user_auth.py -v --cov=.
 
-    - name: Verify test discovery
-      run: |
-        cd backend
-        echo "Test files found:"
-        find . -name "test_*.py"
-        python -m pytest --collect-only
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage.xml
+        flags: backend
 
   frontend:
-    name: Frontend - Vue
+    name: Frontend - React
     runs-on: ubuntu-latest
+    needs: backend
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Node
+    - name: Set up Node.js 20
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
 
     - name: Install frontend dependencies
       run: |
         cd frontend
-        npm install
+        npm ci
 
-    - name: Build frontend
+    - name: Run linting
+      run: |
+        cd frontend
+        npm run lint
+
+    - name: Run tests
+      run: |
+        cd frontend
+        npm test -- --watchAll=false --coverage
+
+    - name: Build production
       run: |
         cd frontend
         npm run build
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./frontend/coverage/lcov.info
+        flags: frontend
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-dist
+        path: frontend/build
