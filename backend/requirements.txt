@@ -20,15 +20,21 @@ djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 dotenv==0.9.9
 google-auth==2.39.0
+gunicorn==21.2.0
 ics==0.7.2
 idna==3.10
+iniconfig==2.1.0
 kombu==5.5.3
+packaging==25.0
 pillow==11.2.1
+pluggy==1.5.0
 prompt_toolkit==3.0.51
 psycopg2-binary==2.9.10
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 PyJWT==2.9.0
+pytest==8.3.5
+pytest-django==4.11.1
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
@@ -43,4 +49,3 @@ tzdata==2025.2
 urllib3==2.4.0
 vine==5.1.0
 wcwidth==0.2.13
-gunicorn==21.2.0
