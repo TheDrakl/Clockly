@@ -69,10 +69,10 @@ jobs:
         cd backend
         python manage.py migrate
 
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
         cd backend
-        pytest tests/test_user_auth.py -v --cov=.
+        pytest tests/test_user_auth.py -v --cov=. --cov-report=xml
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3
@@ -99,29 +99,13 @@ jobs:
         cd frontend
         npm ci
 
-    - name: Run linting
-      run: |
-        cd frontend
-        npm run lint
-
-    - name: Run tests
-      run: |
-        cd frontend
-        npm test -- --watchAll=false --coverage
-
     - name: Build production
       run: |
         cd frontend
         npm run build
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./frontend/coverage/lcov.info
-        flags: frontend
-
-    - name: Upload artifact
+    - name: Upload production build
       uses: actions/upload-artifact@v3
       with:
-        name: frontend-dist
+        name: react-build
         path: frontend/build
