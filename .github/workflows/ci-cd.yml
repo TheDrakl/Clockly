@@ -16,7 +16,7 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: denys
-          POSTGRES_PASSWORD: 12343211234
+          POSTGRES_PASSWORD: 123
           POSTGRES_DB: clockly
         ports:
           - 5432:5432
@@ -51,7 +51,7 @@ jobs:
       CELERY_RESULT_BACKEND: redis://localhost:6379/0
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
@@ -86,7 +86,7 @@ jobs:
     needs: backend
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Node.js 20
       uses: actions/setup-node@v4
@@ -105,7 +105,7 @@ jobs:
         npm run build
 
     - name: Upload production build
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4 
       with:
         name: react-build
         path: frontend/build
