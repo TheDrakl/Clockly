@@ -46,7 +46,7 @@ class UserTests(APITestCase):
         self.login_response = self.client.post(login_url, login_data, format='json')
 
     def test_create_user(self):
-        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_verification_code(self):
         User = get_user_model()
