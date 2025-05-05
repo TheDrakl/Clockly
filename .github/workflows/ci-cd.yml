@@ -94,7 +94,7 @@ jobs:
         node-version: '20'
         cache: 'npm'
     - name: Install frontend dependencies
-      working-directory: clockly/frontend
+      run: cd frontend
       run: npm ci
 
     - name: Build production
