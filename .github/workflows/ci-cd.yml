@@ -96,9 +96,8 @@ jobs:
         cache-dependency-path: clockly/frontend/package-lock.json
 
     - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm ci
+      working-directory: clockly/frontend
+      run: npm ci
 
     - name: Build production
       working-directory: clockly/frontend

@@ -83,4 +83,15 @@ dmypy.json
 # Pyre
 .pyre/
 
+# macOS
 .DS_Store
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+.next/
+out/
