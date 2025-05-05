@@ -93,19 +93,16 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-
     - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm ci
+      working-directory: clockly/frontend
+      run: npm ci
 
     - name: Build production
-      run: |
-        cd frontend
-        npm run build
+      working-directory: clockly/frontend
+      run: npm run build
 
     - name: Upload production build
-      uses: actions/upload-artifact@v4 
+      uses: actions/upload-artifact@v4
       with:
         name: react-build
-        path: frontend/build
+        path: clockly/frontend/build
