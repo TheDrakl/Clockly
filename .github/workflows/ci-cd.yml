@@ -37,7 +37,7 @@ jobs:
           --health-retries 5
 
     env:
-      SECRET_KEY: key
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
       DEBUG: 'False'
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: clockly
