@@ -15,8 +15,8 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: denys
-          POSTGRES_PASSWORD: 12343211234
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: 123
           POSTGRES_DB: clockly
         ports:
           - 5432:5432
@@ -37,12 +37,12 @@ jobs:
           --health-retries 5
 
     env:
-      SECRET_KEY: dummysecretkey123
+      SECRET_KEY: key
       DEBUG: 'False'
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: clockly
-      DB_USER: denys
-      DB_PASSWORD: 12343211234
+      DB_USER: test_user
+      DB_PASSWORD: 123
       DB_HOST: localhost
       DB_PORT: 5432
       REDIS_URL: redis://localhost:6379/0
