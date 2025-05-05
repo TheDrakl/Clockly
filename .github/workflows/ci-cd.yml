@@ -15,9 +15,9 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: 123
-          POSTGRES_DB: clockly
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
         ports:
           - 5432:5432
         options: >-
@@ -38,17 +38,17 @@ jobs:
 
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DEBUG: 'False'
-      DB_ENGINE: django.db.backends.postgresql
-      DB_NAME: clockly
-      DB_USER: test_user
-      DB_PASSWORD: 123
-      DB_HOST: localhost
-      DB_PORT: 5432
-      REDIS_URL: redis://localhost:6379/0
+      DEBUG: ${{ secrets.DEBUG }}
+      DB_ENGINE: ${{ secrets.DB_ENGINE }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
       DJANGO_SETTINGS_MODULE: backend.test_settings
-      CELERY_BROKER_URL: redis://localhost:6379/0
-      CELERY_RESULT_BACKEND: redis://localhost:6379/0
+      CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+      CELERY_RESULT_BACKEND: ${{ secrets.CELERY_RESULT_BACKEND }}
 
     steps:
     - uses: actions/checkout@v4
