@@ -11,7 +11,6 @@ from django.db import transaction
 import logging
 
 logger = logging.getLogger('core')
-logger.info('This is a test log from the clients module!')
 
 @shared_task
 def send_appointment_email(customer_name, service_name, appointment_date, start_time, end_time, customer_email):

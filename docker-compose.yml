@@ -1,14 +1,16 @@
 services:
   web:
-    build: .
-    entrypoint: /entrypoint.sh
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: ./entrypoint.sh
     command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - .:/app
+      - ./backend:/app:cached
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
       db:
         condition: service_healthy
@@ -16,6 +18,15 @@ services:
         condition: service_started
     networks:
       - backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    container_name: react-frontend
+    restart: unless-stopped  
 
   db:
     image: postgres:14
@@ -42,13 +53,15 @@ services:
       - backend
 
   celery:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     entrypoint: /entrypoint.sh
     command: celery -A backend.celery:app worker --loglevel=info
     volumes:
-      - .:/app
+      - ./backend:/app
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
       web:
         condition: service_started
@@ -60,13 +73,15 @@ services:
       - backend
 
   celery-beat:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     entrypoint: /entrypoint.sh
     command: celery -A backend.celery:app beat --loglevel=info
     volumes:
-      - .:/app
+      - ./backend:/app
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
       web:
         condition: service_started

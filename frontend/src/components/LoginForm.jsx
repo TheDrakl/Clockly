@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function LoginForm({ onAuth }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,6 +21,7 @@ export default function LoginForm({ onAuth }) {
       if (response.ok) {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('refresh', data.refresh_token);
+        navigate('/profile')
         onAuth();
       } else {
         setErrorMessage(data.message || 'Login failed');
@@ -81,9 +84,4 @@ export default function LoginForm({ onAuth }) {
 
         <div className="text-center text-sm text-gray-600">
           Don’t have an account?
-          <Link to="/register" className="ml-1 text-blue-500 hover:underline">Sign up</Link>
-        </div>
-      </div>
-    </div>
-  );
-}
+          <Link to="/register" className="ml-1 text-blue-500 h
