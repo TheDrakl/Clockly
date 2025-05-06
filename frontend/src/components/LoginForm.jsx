@@ -84,4 +84,9 @@ export default function LoginForm({ onAuth }) {
 
         <div className="text-center text-sm text-gray-600">
           Don’t have an account?
-          <Link to="/register" className="ml-1 text-blue-500 h
+          <Link to="/register" className="ml-1 text-blue-500 hover:underline">Sign up</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
