@@ -62,6 +62,7 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     confirmed = models.BooleanField(default=True)
+    email_sent = models.BooleanField(default=False)
     was_reminded = models.BooleanField(default=False)
 
     def start_datetime(self):

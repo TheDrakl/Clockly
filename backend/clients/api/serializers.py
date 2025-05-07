@@ -22,6 +22,15 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         read_only_fields = ['user']
 
+class BookingClientSerializer(serializers.ModelSerializer):
+    date = serializers.DateField()
+    service_id = serializers.CharField()
+
+    class Meta:
+        fields = ['customer_email', 'customer_name', 'customer_phone', 'user', 'service_id', 'start_time', 'date', 'email_sent']
+        model = Booking
+        read_only_fields = ['user']
+
 class BulkAvailabilitySlotSerializer(serializers.Serializer):
     day_of_week = serializers.ListField(child=serializers.ChoiceField(choices=Weekday.choices))
     start_time = serializers.TimeField()
