@@ -103,12 +103,12 @@ function App() {
       }
 
       const data = await response.json();
-      if (!data.access || !data.refresh) {
+      if (!data.access_token || !data.refresh) {
         console.error('Invalid token response');
         return false;
       }
       localStorage.setItem('token', data.access);
-      localStorage.setItem('refresh', data.refresh);
+      localStorage.setItem('refresh', data.refresh_token);
       return true;
     } catch (err) {
       console.error('Token refresh failed:', err);

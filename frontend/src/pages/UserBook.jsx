@@ -19,6 +19,7 @@ function UserBook() {
         customer_phone: '',
         notes: ''
     })
+    const [success, setSuccess] = useState(false)
 
     useEffect(() => {
         const getServices = async () => {
@@ -133,7 +134,8 @@ function UserBook() {
                 })
             })
 
-            if (response.ok) {
+            if (response.status == 201) {
+                setSuccess(true)
                 setErrorMessage('')
                 setSelectedSlot(null)
                 setBookingForm({
@@ -245,7 +247,7 @@ function UserBook() {
                     </div>
                 )}
 
-                {availableSlots.length > 0 && !selectedSlot && (
+                {!success && availableSlots.length > 0 && !selectedSlot && (
                     <div className="max-w-4xl mx-auto">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Time Slots</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -336,6 +338,21 @@ function UserBook() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                )}
+
+                {success && (
+                    <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-4l5-5-1.414-1.414L9 11.172l-1.586-1.586L6 11l3 3z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm text-green-700">Booking successful! 🎉</p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
