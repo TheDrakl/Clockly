@@ -1,168 +1,110 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Services = () => {
-  const [profileData, setProfileData] = useState(null);
-  const [error, setError] = useState(null);
-  const [newService, setNewService] = useState({
-    name: "",
-    description: "",
-    duration: "",
-    price: "",
-  });
-  const [showForm, setShowForm] = useState(false);
-
-  const fetchProfileData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No token found, please log in.");
-        return;
-      }
-
-      const response = await fetch("http://127.0.0.1:8000/api/client/me/", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch profile data");
-      }
-
-      const data = await response.json();
-      setProfileData(data);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+  const [services, setServices] = useState([]);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchProfileData();
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/client/me/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+      } catch (error) {
+        console.error(error);
+        navigate("/login");
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/client/services/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setServices(data);
+        } else {
+          setError("Failed to fetch services");
+        }
+      } catch (error) {
+        setError("Error fetching services");
+        console.error(error);
+      }
+    };
+
+    fetchServices();
   }, []);
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-
-    // Convert duration to HH:MM:SS
-    const [hours, minutes] = newService.duration.split(":");
-    const formattedDuration = `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`;
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/client/services/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          ...newService,
-          duration: formattedDuration,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add new service");
-      }
-
-      setShowForm(false);
-      setNewService({ name: "", description: "", duration: "", price: "" });
-      await fetchProfileData();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
-
-  if (!profileData) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div className="mb-6">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Services</h2>
-      <div
-        className="text-xl font-semibold mb-4 text-center border-2 border-gray-300 w-1/6 mx-auto p-2 rounded-lg cursor-pointer hover:bg-gray-200"
-        onClick={() => setShowForm(true)}
-      >
-        Add New Service
-      </div>
-
-      {showForm && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-2xl font-semibold mb-4">Add Service</h3>
-            <form onSubmit={handleFormSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-700">Name</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg p-2"
-                  value={newService.name}
-                  onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Description</label>
-                <textarea
-                  className="w-full border rounded-lg p-2"
-                  value={newService.description}
-                  onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Duration</label>
-                <input
-                  type="time"
-                  className="w-full border rounded-lg p-2"
-                  value={newService.duration}
-                  onChange={(e) => setNewService({ ...newService, duration: e.target.value })}
-                  required
-                />
-                <p className="text-sm text-gray-500 mt-1">Format: HH:MM (e.g., 01:30 for 1h 30min)</p>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Price ($)</label>
-                <input
-                  type="number"
-                  className="w-full border rounded-lg p-2"
-                  value={newService.price}
-                  onChange={(e) => setNewService({ ...newService, price: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-4">
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-gray-300 rounded-lg"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-lg">
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            Your Services
+          </h2>
+          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+            Manage your available services
+          </p>
         </div>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        {(profileData.Services || []).map((service) => (
-          <div key={service.id} className="p-4 border rounded-lg shadow-md">
-            <h3 className="text-xl font-medium">{service.name}</h3>
-            <p className="text-gray-700">{service.description}</p>
-            <p className="text-gray-500">Duration: {service.duration}</p>
-            <p className="text-gray-500">Price: ${service.price}</p>
+        {error && (
+          <div className="mt-8 bg-red-50 border-l-4 border-red-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
           </div>
-        ))}
+        )}
+
+        <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => (
+            <div key={service.id} className="bg-white overflow-hidden shadow rounded-lg">
+              {service.featured_img && (
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    className="w-full h-48 object-cover"
+                    src={service.featured_img}
+                    alt={service.name}
+                  />
+                </div>
+              )}
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium text-gray-900">{service.name}</h3>
+                <p className="mt-1 text-sm text-gray-500">{service.description}</p>
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="text-lg font-medium text-indigo-600">${service.price}</span>
+                  <span className="text-sm text-gray-500">{service.duration} min</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

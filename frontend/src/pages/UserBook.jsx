@@ -170,7 +170,6 @@ function UserBook() {
                     </div>
                 )}
 
-                {/* Service Selection UI */}
                 {!isDateSelection && !availableSlots.length && services.length > 0 && (
                     <div className="space-y-6">
                         <h2 className="text-3xl font-bold text-gray-900">Select a Service</h2>
@@ -214,7 +213,6 @@ function UserBook() {
                     </div>
                 )}
 
-                {/* Date Selection UI */}
                 {isDateSelection && !availableSlots.length && (
                     <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose a Date</h2>
@@ -247,7 +245,6 @@ function UserBook() {
                     </div>
                 )}
 
-                {/* Available Slots UI */}
                 {availableSlots.length > 0 && !selectedSlot && (
                     <div className="max-w-4xl mx-auto">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Time Slots</h2>
@@ -275,7 +272,6 @@ function UserBook() {
                     </div>
                 )}
 
-                {/* Booking Form */}
                 {selectedSlot && (
                     <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Book Your Appointment</h2>
@@ -343,7 +339,6 @@ function UserBook() {
                     </div>
                 )}
 
-                {/* No Services Message */}
                 {services.length === 0 && !isDateSelection && !availableSlots.length && (
                     <div className="text-center py-12">
                         <p className="text-lg text-gray-600">No services found. Please try again later.</p>

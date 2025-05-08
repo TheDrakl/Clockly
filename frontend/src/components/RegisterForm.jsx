@@ -1,188 +1,249 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-export default function RegisterForm({ onAuth }) {
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [password2, setPassword2] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+export default function RegisterForm() {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    full_name: '',
+    phone: ''
+  });
   const [verificationCode, setVerificationCode] = useState('');
-  const [showVerification, setShowVerification] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  // Handle user registration
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/auth/register/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, password, password2 }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setShowVerification(true);
-        setErrorMessage('');
-        setSuccessMessage('Registration successful! Please check your email for the verification code.');
+        setIsVerifying(true);
       } else {
-        setErrorMessage(data.message || 'Registration failed');
-        setSuccessMessage('');
+        setError(data.message || 'Registration failed');
       }
     } catch (error) {
-      setErrorMessage('Something went wrong. Please try again.');
+      setError('An error occurred during registration');
       console.error(error);
     }
   };
 
-  // Handle verification code submission
-  const handleVerificationCode = async (e) => {
+  const handleVerification = async (e) => {
     e.preventDefault();
-
-    if (!verificationCode) {
-      setErrorMessage('Please enter the verification code.');
-      return;
-    }
+    setError('');
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/auth/verify/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-          email: email, 
-          username: username, 
-          password: password, 
-          password2: password2, 
-          verification_code: verificationCode
-        }),
+          email: formData.email,
+          code: verificationCode
+        })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccessMessage('Verification successful! You can now log in.');
-        setErrorMessage('');
-        localStorage.setItem('token', data.access);
-        localStorage.setItem('refresh', data.refresh);
-        if (onAuth) onAuth();
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
+        navigate('/profile');
       } else {
-        setErrorMessage(data.message || 'Verification failed');
-        setSuccessMessage('');
+        setError(data.message || 'Verification failed');
       }
     } catch (error) {
-      setErrorMessage('Something went wrong. Please try again.');
+      setError('An error occurred during verification');
       console.error(error);
     }
   };
 
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Verify your email
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Please enter the verification code sent to your email
+          </p>
+        </div>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            {error && (
+              <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form className="space-y-6" onSubmit={handleVerification}>
+              <div>
+                <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
+                  Verification Code
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="verificationCode"
+                    name="verificationCode"
+                    type="text"
+                    required
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Verify
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 font-inter px-4">
-      <div className="w-full max-w-md bg-white shadow-md rounded-xl p-8 space-y-6">
-        <h2 className="text-3xl font-bold text-center text-gray-800">Create Account</h2>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Create your account
+        </h2>
+      </div>
 
-        {/* Registration Form */}
-        {!showVerification ? (
-          <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                id="email"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <div className="mt-1">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-              <input
-                type="text"
-                id="username"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                placeholder="your_username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoComplete="username"
-              />
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <div className="mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                id="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-              />
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <div className="mt-1">
+                <input
+                  id="full_name"
+                  name="full_name"
+                  type="text"
+                  required
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password2" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-              <input
-                type="password"
-                id="password2"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                placeholder="••••••••"
-                value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
-                required
-                autoComplete="new-password"
-              />
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <div className="mt-1">
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
             </div>
 
-            {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
-            {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition text-sm font-medium"
-            >
-              Register
-            </button>
+            <div>
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Register
+              </button>
+            </div>
           </form>
-        ) : (
-          // Verification Form
-          <form onSubmit={handleVerificationCode} className="space-y-5">
-            <div>
-              <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">Verification Code</label>
-              <input
-                type="text"
-                id="verificationCode"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                required
-                autoComplete="off"
-              />
-            </div>
-
-            {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
-            {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
-
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition text-sm font-medium"
-            >
-              Verify Code
-            </button>
-          </form>
-        )}
-
-        <div className="text-center text-sm text-gray-600">
-          Already have an account?
-          <Link to="/login" className="ml-1 text-blue-500 hover:underline">Login</Link>
         </div>
       </div>
     </div>
