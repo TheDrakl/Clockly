@@ -65,8 +65,8 @@ export default function RegisterForm({ onAuth }) {
       if (response.ok) {
         setSuccessMessage('Verification successful! You can now log in.');
         setErrorMessage('');
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('refresh', data.refresh_token);
+        localStorage.setItem('token', data.access);
+        localStorage.setItem('refresh', data.refresh);
         if (onAuth) onAuth();
       } else {
         setErrorMessage(data.message || 'Verification failed');
