@@ -59,6 +59,8 @@ class Booking(models.Model):
     customer_email = models.EmailField()
     customer_phone = models.CharField(max_length=20, blank=True)
 
+    note = models.TextField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     confirmed = models.BooleanField(default=True)

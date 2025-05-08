@@ -10,6 +10,7 @@ from rest_framework.exceptions import NotFound
 from clients.utils.available_times import generate_available_times
 from datetime import datetime
 from .serializers import BookingSerializer
+from clients.api.serializers import ServiceSerializer
 from datetime import timedelta
 from core.tasks import send_appointment_email
 
@@ -98,4 +99,13 @@ class BookTimeView(APIView):
         return Response({"message": "Booking confirmed!"}, status=201)
 
 
+class ServicesListAPIView(generics.ListAPIView):
+    serializer_class = ServiceSerializer
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        queryset = Service.objects.select_related('user').filter(user__username=username)
+        if not queryset.exists():
+            raise NotFound("No services found for this user.")
+        return queryset
 
