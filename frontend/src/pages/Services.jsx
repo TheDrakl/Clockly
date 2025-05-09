@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEdit } from "react-icons/fa"
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -55,6 +56,14 @@ const Services = () => {
     fetchServices();
   }, []);
 
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
+  if (!services) {
+    return <div>Loading...</div>
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -94,13 +103,18 @@ const Services = () => {
                   />
                 </div>
               )}
-              <div className="px-4 py-5 sm:p-6">
+              <div className="relative px-4 py-5 sm:p-6">
+                <button className="absolute top-2 right-2 text-gray-500 hover:text-indigo-600">
+                  <FaEdit size={18} />
+                </button>
+              
                 <h3 className="text-lg font-medium text-gray-900">{service.name}</h3>
                 <p className="mt-1 text-sm text-gray-500">{service.description}</p>
                 <div className="mt-4 flex justify-between items-center">
                   <span className="text-lg font-medium text-indigo-600">${service.price}</span>
                   <span className="text-sm text-gray-500">{service.duration} min</span>
                 </div>
+          
               </div>
             </div>
           ))}
