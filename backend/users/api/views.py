@@ -246,4 +246,72 @@ class ResendCodeAPIView(APIView):
                     "detail": f"You need to wait {remaining_time.seconds} seconds before requesting a new code."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            Veri
+            VerificationCode.objects.filter(email=email).delete()
+            create_verification_code(email=email)
+
+            return Response({
+                "detail": f"Verification code has been resent to {email}!"
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                        
+
+class GoogleAuthAPIView(APIView):
+    def post(self, request):
+        token = self.request.data.get('token')
+        if not token:
+            return Response({"error": "Token required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+            email = idinfo['email']
+            name = idinfo.get('name', '')
+            picture = idinfo.get('picture')
+
+            user, created = CustomUser.objects.get_or_create(email=email, defaults={
+                'username': email,
+                'username': name,
+            })
+
+            refresh = RefreshToken.for_user(user)
+            access = AccessToken.for_user(user)
+
+            return Response({
+                "access_token": str(access),
+                "refresh_token": str(refresh)
+            }, status=status.HTTP_200_OK)
+        
+        except ValueError:
+            return Response({
+                "error": "Invalid token"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutAPIView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self, request):
+            res = Response(status=200)
+
+            res.set_cookie(
+                key='access_token',
+                value='',
+                httponly=True,
+                secure=True,
+                samesite='None',
+                max_age=0
+            )
+
+            res.set_cookie(
+                key='refresh_token',
+                value='',
+                httponly=True,
+                secure=True,
+                samesite='None',
+                max_age=0
+            )
+            
+            return res
+    
+class CheckAuth(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        return Response({'is_authenticated': True})
