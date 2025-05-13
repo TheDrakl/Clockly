@@ -19,6 +19,7 @@ from datetime import timedelta
 from django.utils import timezone
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
 # class LoginAPIView(APIView):
 #     serializer_class = LoginSerializer
@@ -83,7 +84,7 @@ class CustomTokenRefreshView(TokenRefreshView):
         try:
             refresh_token = RefreshToken(old_refresh_token)
 
-            access_token = refresh_token.access_token
+            access_token = str(refresh_token.access_token)
             new_refresh_token = str(refresh_token)
 
             res = Response(status=status.HTTP_200_OK)
@@ -312,6 +313,23 @@ class LogoutAPIView(APIView):
             return res
     
 class CheckAuth(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+
     def get(self, request):
-        return Response({'is_authenticated': True})
+        refresh = request.COOKIES.get('refresh_token')
+
+        if not refresh:
+            return Response({'is_authenticated': False, 'error': 'No token found'}, status=401)
+
+        try:
+            token = RefreshToken(refresh)
+            token.check_exp()
+
+            return Response({'is_authenticated': True})
+
+        except TokenError as e:
+            return Response({
+                'is_authenticated': False,
+                'error': 'Refresh token expired or invalid. Please log in again.',
+                'detail': str(e)
+            }, status=401)
