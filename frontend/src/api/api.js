@@ -1,9 +1,25 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  }
 });
+
+api.interceptors.request.use(
+  (config) => {
+    if (config.url.includes('/api/auth/')) {
+      return config;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -21,29 +37,32 @@ const processQueue = (error, token = null) => {
 };
 
 api.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise(function(resolve, reject) {
-          failedQueue.push({ resolve, reject });
-        })
-        .then(() => api(originalRequest))
-        .catch(err => Promise.reject(err));
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (originalRequest.url.includes('/api/auth/') || originalRequest.headers['X-No-Refresh']) {
+        return Promise.reject(error);
+      }
+
+      if (error.response?.data?.error === "refresh_token doesn't exist in cookies" ||
+          error.response?.data?.code === "token_not_valid") {
+        return Promise.reject(error);
       }
 
       originalRequest._retry = true;
-      isRefreshing = true;
 
       try {
-        await api.post('/api/auth/token/refresh/');
+        await api.post('/api/auth/refresh/');
         processQueue(null);
         return api(originalRequest);
-      } catch (err) {
-        processQueue(err, null);
-        return Promise.reject(err);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        if (refreshError.response?.status === 401) {
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }

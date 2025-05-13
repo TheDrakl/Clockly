@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../api/api';
 
 export default function RegisterForm() {
@@ -14,6 +15,7 @@ export default function RegisterForm() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,8 +48,11 @@ export default function RegisterForm() {
         verification_code: verificationCode
       });
 
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('refresh', response.data.refresh_token);
+      await login({
+        email: formData.email,
+        password: formData.password
+      });
+      
       navigate('/profile');
     } catch (error) {
       setError(error.response?.data?.message || 'Verification failed');
@@ -181,7 +186,7 @@ export default function RegisterForm() {
 
             <div>
               <label htmlFor="password2" className="block text-sm font-medium text-gray-700">
-                Password
+                Confirm Password
               </label>
               <div className="mt-1">
                 <input

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/api'
+import { useAuth } from '../contexts/AuthContext'
 
 function Profile() {
     const [user, setUser] = useState(null)
     const [error, setError] = useState('')
+    const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
+    const { isAuthenticated } = useAuth()
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -15,11 +18,27 @@ function Profile() {
             } catch (error) {
                 setError('Error fetching user data')
                 console.error(error)
+            } finally {
+                setLoading(false)
             }
         }
 
-        fetchUserData()
-    }, [])
+        if (isAuthenticated) {
+            fetchUserData()
+        }
+    }, [isAuthenticated])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center">
+                        <p className="text-lg text-gray-600">Loading profile...</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     if (error) {
         return (
@@ -47,7 +66,7 @@ function Profile() {
             <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center">
-                        <p className="text-lg text-gray-600">Loading...</p>
+                        <p className="text-lg text-gray-600">No user data found</p>
                     </div>
                 </div>
             </div>
@@ -65,16 +84,16 @@ function Profile() {
                     <div className="border-t border-gray-200">
                         <dl>
                             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt className="text-sm font-medium text-gray-500">Username</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.User.username}</dd>
+                                <dt className="text-sm font-medium text-gray-500">Full name</dt>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.name}</dd>
                             </div>
                             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt className="text-sm font-medium text-gray-500">Email address</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.User.email}</dd>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.email}</dd>
                             </div>
                             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                                 <dt className="text-sm font-medium text-gray-500">Phone number</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.User.phone || 'Not provided'}</dd>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user.phone || 'Not provided'}</dd>
                             </div>
                         </dl>
                     </div>

@@ -1,22 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../api/api";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function LoginForm({ onAuth }) {
+export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post("/api/auth/login/", { email, password });
-      console.log(response.data);
-
+      await login({ email, password });
       navigate("/profile");
-      onAuth();
     } catch (error) {
       if (error.response && error.response.data) {
         setErrorMessage(error.response.data.message || "Login failed");
