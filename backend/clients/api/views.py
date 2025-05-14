@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 from core.tasks import send_appointment_email
 from datetime import datetime
+from django.utils import timezone
 import time
 
 class ServiceListCreateAPIView(generics.ListCreateAPIView):
@@ -216,7 +217,7 @@ class DashboardAPIView(APIView):
     def get(self, request, *args, **kwargs):
         services = ServiceSerializer(Service.objects.filter(user=request.user), many=True)
         slots = AvailabilitySlotSerializer(AvailabilitySlot.objects.filter(user=request.user), many=True)
-        bookings = BookingClientSerializer(Booking.objects.filter(user=request.user), many=True)
+        bookings = BookingClientSerializer(Booking.objects.filter(user=request.user).order_by('-end_datetime'), many=True)
         user = UserSerializer(self.request.user)
         
         return Response({

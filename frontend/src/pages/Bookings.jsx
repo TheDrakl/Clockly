@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPlus, FaEdit } from "react-icons/fa";
 import { formatDate } from "../utils/format";
-import api from '../api/api';
+import api from "../api/api";
 
 const Bookings = () => {
   const [userData, setUserData] = useState(null);
+  const [upcomingBookings, setUpcomingBookings] = useState([]);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -26,7 +27,7 @@ const Bookings = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await api.get('/api/client/me/');
+        const response = await api.get("/api/client/me/");
         setUserData(response.data);
       } catch (error) {
         setError(error.message);
@@ -37,11 +38,21 @@ const Bookings = () => {
     fetchUserData();
   }, [navigate]);
 
+    const filterBookings = (isUpcoming) => {
+    if (!userData?.Bookings) return [];
+    
+    return userData.Bookings.filter(booking => 
+      isUpcoming 
+        ? new Date(booking.end_datetime) > new Date()
+        : new Date(booking.end_datetime) <= new Date()
+    );
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await api.post('/api/client/bookings/', {
+      const response = await api.post("/api/client/bookings/", {
         customer_name: newBooking.customer_name,
         customer_email: newBooking.customer_email,
         customer_phone: newBooking.customer_phone,
@@ -64,7 +75,7 @@ const Bookings = () => {
         send_email: true,
       });
 
-      const updated = await api.get('/api/client/me/');
+      const updated = await api.get("/api/client/me/");
       setUserData(updated.data);
     } catch (err) {
       setError(err.message);
@@ -90,21 +101,24 @@ const Bookings = () => {
     e.preventDefault();
 
     try {
-      const response = await api.put(`/api/client/bookings/${editingBooking.id}/`, {
-        customer_name: editingBooking.customer_name,
-        customer_email: editingBooking.customer_email,
-        customer_phone: editingBooking.customer_phone,
-        service_id: parseInt(editingBooking.service),
-        date: editingBooking.date,
-        status: editingBooking.status,
-        start_time: editingBooking.start_time,
-        email_sent: editingBooking.email_sent,
-      });
+      const response = await api.put(
+        `/api/client/bookings/${editingBooking.id}/`,
+        {
+          customer_name: editingBooking.customer_name,
+          customer_email: editingBooking.customer_email,
+          customer_phone: editingBooking.customer_phone,
+          service_id: parseInt(editingBooking.service),
+          date: editingBooking.date,
+          status: editingBooking.status,
+          start_time: editingBooking.start_time,
+          email_sent: editingBooking.email_sent,
+        }
+      );
 
       setShowEdit(false);
 
       // Refresh user data
-      const updated = await api.get('/api/client/me/');
+      const updated = await api.get("/api/client/me/");
       setUserData(updated.data);
     } catch (err) {
       setError(err.message);
@@ -119,7 +133,7 @@ const Bookings = () => {
       setShowDelete(false);
 
       // Refresh user data
-      const updated = await api.get('/api/client/me/');
+      const updated = await api.get("/api/client/me/");
       setUserData(updated.data);
     } catch (err) {
       setError(err.message);
@@ -133,7 +147,7 @@ const Bookings = () => {
   };
 
   function onClose() {
-    setShowDelete(false)
+    setShowDelete(false);
   }
 
   if (error) {
@@ -505,90 +519,101 @@ const Bookings = () => {
           </div>
         )}
         {showDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Are you sure you want to delete?
-            </h3>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteBooking}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-        )}
-        <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {userData.Bookings?.map((booking) => (
-            <div
-              key={booking.id}
-              className="bg-white overflow-hidden shadow rounded-lg"
-            >
-              <div className="px-4 py-5 sm:p-6">
-                <div className="relative">
-                  <button
-                    className="absolute top-2 right-2 text-gray-500 hover:text-indigo-600"
-                    onClick={() => handleEditBooking(booking)}
-                  >
-                    <FaEdit size={18} />
-                  </button>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {booking.service_name}
-                </h3>
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Customer:</span>{" "}
-                    {booking.customer_name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Service:</span>{" "}
-                    {booking.service_name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Date:</span>{" "}
-                    {formatDate(booking.end_datetime.split("T")[0])}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Time:</span>{" "}
-                    {booking.start_time} - {booking.end_time}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Status:</span>{" "}
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        booking.status === "confirmed"
-                          ? "bg-green-100 text-green-800"
-                          : booking.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {booking.status?.charAt(0).toUpperCase() +
-                        booking.status?.slice(1) || "Pending"}
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Email Sent:</span>{" "}
-                    {booking.email_sent ? (
-                      <span className="text-green-600">Yes</span>
-                    ) : (
-                      <span className="text-red-600">No</span>
-                    )}
-                  </p>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Are you sure you want to delete?
+              </h3>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteBooking}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Delete
+                </button>
               </div>
             </div>
-          ))}
+          </div>
+        )}
+        {/* Current bookings */}
+                <div className="mt-12">
+          <h3 className="text-xl font-semibold mb-4">Upcoming Bookings</h3>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filterBookings(true).map((booking) => (
+              <BookingCard 
+                key={booking.id} 
+                booking={booking} 
+                onEdit={() => handleEditBooking(booking)} 
+              />
+            ))}
+            {filterBookings(true).length === 0 && (
+              <p className="text-gray-500">No upcoming bookings</p>
+            )}
+          </div>
+        </div>
+        {/* Bookings from the Past */}
+        <div className="mt-12">
+          <h3 className="text-xl font-semibold mb-4">Past Bookings</h3>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filterBookings(false).map((booking) => (
+              <BookingCard 
+                key={booking.id} 
+                booking={booking} 
+                onEdit={() => handleEditBooking(booking)} 
+                isPast 
+              />
+            ))}
+            {filterBookings(false).length === 0 && (
+              <p className="text-gray-500">No past bookings</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BookingCard = ({ booking, onEdit, isPast = false }) => {
+  return (
+    <div className={`bg-white overflow-hidden shadow rounded-lg ${isPast ? 'opacity-80' : ''}`}>
+      <div className="px-4 py-5 sm:p-6">
+        <div className="relative">
+          <button
+            className="absolute top-2 right-2 text-gray-500 hover:text-indigo-600"
+            onClick={onEdit}
+          >
+            <FaEdit size={18} />
+          </button>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900">
+          {booking.service_name}
+        </h3>
+        <div className="mt-4 space-y-2">
+          <p className="text-sm text-gray-500">
+            <span className="font-medium">Customer:</span> {booking.customer_name}
+          </p>
+          <p className="text-sm text-gray-500">
+            <span className="font-medium">Date:</span> {formatDate(booking.end_datetime.split("T")[0])}
+          </p>
+          <p className="text-sm text-gray-500">
+            <span className="font-medium">Time:</span> {booking.start_time} - {booking.end_time}
+          </p>
+          <p className="text-sm text-gray-500">
+            <span className="font-medium">Status:</span>{" "}
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              booking.status === "confirmed" ? "bg-green-100 text-green-800" :
+              booking.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+              "bg-red-100 text-red-800"
+            }`}>
+              {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1) || "Pending"}
+            </span>
+          </p>
         </div>
       </div>
     </div>
