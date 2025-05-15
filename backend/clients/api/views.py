@@ -5,6 +5,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .serializers import BookingSerializer, AvailabilitySlotSerializer, ServiceSerializer, BookingClientSerializer, UserSerializer
 from ..models import Booking, AvailabilitySlot, Service
+from users.models import CustomUser
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
@@ -227,3 +228,13 @@ class DashboardAPIView(APIView):
             "Bookings": bookings.data,
         })
     
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        
+        serializer.is_valid(raise_exception=True)
+        
+        serializer.save()
+        
+        return Response(serializer.data)
+        

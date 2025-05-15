@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .link {
+    @apply
+      flex
+      items-center
+      cursor-pointer
+      text-text-main
+      font-[550]
+      text-lg
+      leading-tight
+      tracking-tightest
+      h-16
+      mr-4
+      transition-colors
+      duration-200
+      hover:text-purple-main
+      select-none;
+    -webkit-font-smoothing: antialiased;
+    text-decoration: none;
+  }
+}

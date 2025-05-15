@@ -17,8 +17,8 @@ from core.tasks import send_appointment_email
 class AvailableTimesView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, username, date, service_id=None):
-        user = get_user_model().objects.get(username=username)
+    def get(self, request, user_slug, date, service_id=None):
+        user = get_user_model().objects.get(user_slug=user_slug)
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
 
         service_id = service_id or request.GET.get("service_id")
@@ -36,11 +36,11 @@ class AvailableTimesView(APIView):
 class BookTimeView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, username, service_id, date, *args, **kwargs):
+    def post(self, request, user_slug, service_id, date, *args, **kwargs):
         serializer = BookingSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        user = get_user_model().objects.get(username=username)
+        user = get_user_model().objects.get(user_slug=user_slug)
         service = get_object_or_404(Service, id=service_id)
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         
@@ -83,7 +83,8 @@ class BookTimeView(APIView):
             customer_email=customer_email,
             customer_phone=customer_phone,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
+            email_sent=True,
         )
 
         send_appointment_email.delay(
@@ -103,8 +104,8 @@ class ServicesListAPIView(generics.ListAPIView):
     serializer_class = ServiceSerializer
 
     def get_queryset(self):
-        username = self.kwargs['username']
-        queryset = Service.objects.select_related('user').filter(user__username=username)
+        user_slug = self.kwargs['user_slug']
+        queryset = Service.objects.select_related('user').filter(user__user_slug=user_slug)
         if not queryset.exists():
             raise NotFound("No services found for this user.")
         return queryset

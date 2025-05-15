@@ -128,6 +128,8 @@ CORS_EXPOSE_HEADERS = [
     "Cross-Origin-Embedder-Policy",
 ]
 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = "require-corp"
 
@@ -136,7 +138,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
-    'users.auth_backends.EmailAuthBackend',
+    # 'users.auth_backends.EmailAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 

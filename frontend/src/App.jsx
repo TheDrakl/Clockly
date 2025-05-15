@@ -17,23 +17,35 @@ function AppContent() {
 
   return (
     <div>
-      <nav className="p-4 bg-gray-800 text-white flex gap-12 justify-center text-lg">
-        <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
+      <nav className="p-4 bg-nav flex gap-12 justify-center text-lg">
+        <Link to="/" className='link'>Home</Link>
+        <Link to="/about" className='link'>About</Link>
         {isAuthenticated ? (
           <>
-            <button type="button" onClick={logout}>
+            <button type="button" className="link" onClick={logout}>
               Log Out
             </button>
-            <Link to="/services">Services</Link>
-            <Link to="/bookings">Bookings</Link>
-            <Link to="/slots">Slots</Link>
-            <Link to="/profile">Profile</Link>
+            <Link to="/services" className="link">
+              Services
+            </Link>
+            <Link to="/bookings" className="link">
+              Bookings
+            </Link>
+            <Link to="/slots" className="link">
+              Slots
+            </Link>
+            <Link to="/profile" className="link">
+              Profile
+            </Link>
           </>
         ) : (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/login" className="link">
+              Login
+            </Link>
+            <Link to="/register" className="link">
+              Register
+            </Link>
           </>
         )}
       </nav>
@@ -41,7 +53,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/users/:username" element={<UserBook />} />
+        <Route path="/users/:user_slug" element={<UserBook />} />
         <Route
           path="/register"
           element={
@@ -97,9 +109,9 @@ function AppContent() {
 
 function App() {
   return (
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

@@ -41,7 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'username', 'phone']
+        fields = ['id', 'email', 'username', 'phone', 'user_slug']
         read_only_fields =  ['id', 'email', 'username', 'phone']
 
 class BulkAvailabilitySlotSerializer(serializers.Serializer):

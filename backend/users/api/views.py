@@ -26,6 +26,7 @@ from django.utils import timezone
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from django.conf import settings
 
 
 User = get_user_model()
@@ -247,8 +248,9 @@ class GoogleAuthAPIView(APIView):
             )
 
         try:
-            print("STARTING")
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+            CLIENT_ID = settings.GOOGLE_CLIENT_ID
+            print("CLIENT ID", CLIENT_ID)
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
             email = idinfo["email"]
             name = idinfo.get("name", "")
             picture = idinfo.get("picture")
@@ -293,10 +295,9 @@ class GoogleAuthAPIView(APIView):
 
             return res
 
-        except ValueError:
-            return Response(
-                {"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST
-            )
+        except ValueError as e:
+            print("Token verification error:", str(e))
+            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutAPIView(APIView):
@@ -331,6 +332,7 @@ class CheckAuth(APIView):
 
     def get(self, request):
         refresh = request.COOKIES.get("refresh_token")
+        access = request.COOKIES.get("access_token")
 
         if not refresh:
             return Response(
@@ -338,7 +340,7 @@ class CheckAuth(APIView):
             )
 
         try:
-            token = RefreshToken(refresh)
+            token = AccessToken(access)
             user_id = token.payload.get("user_id")
 
             try:

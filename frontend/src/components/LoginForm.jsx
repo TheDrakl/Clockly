@@ -57,6 +57,7 @@ export default function LoginForm() {
               console.log("Login Failed");
               setErrorMessage("Google login failed");
             }}
+            useOneTap={false}
           />
           </div>
           {/* OR separator */}

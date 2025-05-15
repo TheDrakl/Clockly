@@ -5,7 +5,7 @@ import "react-datepicker/dist/react-datepicker.css"
 import api from '../api/api'
 
 function UserBook() {
-    const { username } = useParams()
+    const { user_slug } = useParams()
     const [services, setServices] = useState([])
     const [errorMessage, setErrorMessage] = useState('')
     const [activeService, setActiveService] = useState(null)
@@ -25,7 +25,7 @@ function UserBook() {
     useEffect(() => {
         const getServices = async () => {
             try {
-                const response = await api.get(`/api/bookings/services/${username}/`)
+                const response = await api.get(`/api/bookings/services/${user_slug}/`)
                 setServices(response.data)
             } catch (error) {
                 setErrorMessage('Error fetching services. Try again later')
@@ -34,7 +34,7 @@ function UserBook() {
         }
 
         getServices()
-    }, [username])
+    }, [user_slug])
 
     const handleServiceClick = (service) => {
         setActiveService(service.id)
@@ -44,8 +44,8 @@ function UserBook() {
         if (selectedDate) {
             setIsLoadingSlots(true)
             try {
-                const formattedDate = selectedDate.toISOString().split('T')[0]
-                const response = await api.get(`/api/bookings/${username}/${activeService}/${formattedDate}/`)
+                const formattedDate = selectedDate.toLocaleDateString('en-CA')
+                const response = await api.get(`/api/bookings/${user_slug}/${activeService}/${formattedDate}/`)
 
                 if (response.data.length === 0) {
                     setErrorMessage('No available slots for this date. Please choose another date.')
@@ -97,8 +97,8 @@ function UserBook() {
     const handleBookingSubmit = async (e) => {
         e.preventDefault()
         try {
-            const formattedDate = selectedDate.toISOString().split('T')[0]
-            const response = await api.post(`/api/bookings/book/${username}/${activeService}/${formattedDate}/`, {
+            const formattedDate = selectedDate.toLocaleDateString('en-CA')
+            const response = await api.post(`/api/bookings/book/${user_slug}/${activeService}/${formattedDate}/`, {
                 slot: selectedSlot.id,
                 start_time: selectedSlot.start_time,
                 end_time: selectedSlot.end_time,
@@ -189,9 +189,9 @@ function UserBook() {
 
                 {isDateSelection && !availableSlots.length && (
                     <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose a Date</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Choose a Date</h2>
                         <div className="space-y-6">
-                            <div className="border rounded-lg p-4">
+                            <div className="border rounded-lg p-4 items-center text-center">
                                 <DatePicker
                                     selected={selectedDate}
                                     onChange={handleDateChange}
@@ -338,4 +338,4 @@ function UserBook() {
     )
 }
 
-export default UserBook 
+export default UserBook
