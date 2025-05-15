@@ -30,35 +30,38 @@ export default function LoginForm() {
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 font-inter px-4">
-        <div className="w-full max-w-md bg-white shadow-md rounded-xl p-8 space-y-6">
-          <h2 className="text-3xl font-bold text-center text-gray-800">
-            Sign In
-          </h2>
-          <div className="w-full [&/div]:w-full">
-          <GoogleLogin
-            onSuccess={async (credentialResponse) => {
-              try {
-                const { data } = await api.post("/api/auth/oauth/google/", {
-                  token: credentialResponse.credential,
-                });
+      <div className="min-h-screen flex items-center justify-center bg-bg font-inter px-4">
+        <div className="w-full max-w-md bg-bg-card shadow-md rounded-xl p-8 space-y-6">
+          <h2 className="text-3xl font-bold text-center text-white">Sign In</h2>
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-xs">
+              <GoogleLogin
+                theme="filled_black"
+                size="large"
+                text="signin_with"
+                shape="pill"
+                onSuccess={async (credentialResponse) => {
+                  try {
+                    const { data } = await api.post("/api/auth/oauth/google/", {
+                      token: credentialResponse.credential,
+                    });
 
-                console.log("Backend response:", data);
+                    console.log("Backend response:", data);
 
-                setIsAuthenticated(true)
-
-                navigate("/profile");
-              } catch (error) {
-                console.error("Google login error:", error);
-                setErrorMessage("Google login failed");
-              }
-            }}
-            onError={() => {
-              console.log("Login Failed");
-              setErrorMessage("Google login failed");
-            }}
-            useOneTap={false}
-          />
+                    setIsAuthenticated(true);
+                    navigate("/profile");
+                  } catch (error) {
+                    console.error("Google login error:", error);
+                    setErrorMessage("Google login failed");
+                  }
+                }}
+                onError={() => {
+                  console.log("Login Failed");
+                  setErrorMessage("Google login failed");
+                }}
+                useOneTap={false}
+              />
+            </div>
           </div>
           {/* OR separator */}
           <div className="text-center text-sm text-gray-500 my-4">or</div>
@@ -73,7 +76,7 @@ export default function LoginForm() {
               <input
                 type="email"
                 id="email"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                className="mt-1 block w-full py-[0.2rem] rounded-md bg-bg-card shadow-sm focus:outline-none focus:ring-0 focus:border-gray-800 text-sm"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -92,7 +95,7 @@ export default function LoginForm() {
               <input
                 type="password"
                 id="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                className="mt-1 block w-full py-[0.2rem] rounded-md bg-bg-card shadow-sm focus:outline-none focus:ring-0 focus:border-gray-800 text-sm"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -117,7 +120,7 @@ export default function LoginForm() {
               Forgot password?
             </a>
           </div>
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-text-main">
             Don't have an account?
             <Link to="/register" className="ml-1 text-blue-500 hover:underline">
               Sign up

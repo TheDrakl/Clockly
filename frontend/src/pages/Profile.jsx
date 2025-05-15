@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
+import Button from "../components/PurpleButton.jsx";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import formatDateLabel from "../utils/formatDate.js";
 
 function Profile() {
   const baseUrl = `${window.location.origin}/users/`;
@@ -13,11 +16,13 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await api.get("/api/client/me/");
-        setUser(response.data.User);
+        setUser(response.data);
         setSlug(response.data.User.user_slug);
       } catch (error) {
         setError("Error fetching user data");
@@ -41,7 +46,7 @@ function Profile() {
   };
 
   const handleSave = async () => {
-    const currentSlug = (user.user_slug || "").trim().toLowerCase();
+    const currentSlug = (user.User.user_slug || "").trim().toLowerCase();
     const newSlug = (slug || "").trim().toLowerCase();
 
     if (newSlug === currentSlug) {
@@ -57,7 +62,10 @@ function Profile() {
       setSaveError(false);
       setUser((prev) => ({
         ...prev,
-        user_slug: slug.trim(),
+        User: {
+          ...prev.User,
+          user_slug: slug.trim(),
+        },
       }));
     } catch (error) {
       if (
@@ -68,7 +76,7 @@ function Profile() {
           "User with this user slug already exists."
         )
       ) {
-        setSlug(user.user_slug);
+        setSlug(user.User.user_slug);
         setSaveError(true);
       } else {
         console.error("error:", error);
@@ -148,7 +156,7 @@ function Profile() {
               <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-white">Full name</dt>
                 <dd className="mt-1 text-sm text-text-gray sm:mt-0 sm:col-span-2">
-                  {user.username}
+                  {user.User.username}
                 </dd>
               </div>
               <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -156,13 +164,13 @@ function Profile() {
                   Email address
                 </dt>
                 <dd className="mt-1 text-sm text-text-gray sm:mt-0 sm:col-span-2">
-                  {user.email}
+                  {user.User.email}
                 </dd>
               </div>
               <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-white">Phone number</dt>
                 <dd className="mt-1 text-sm text-text-gray sm:mt-0 sm:col-span-2">
-                  {user.phone || "Not provided"}
+                  {user.User.phone || "Not provided"}
                 </dd>
               </div>
               <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -235,36 +243,47 @@ function Profile() {
         </div>
 
         <div className="mt-8 bg-bg-card shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
+          <div className="px-4 py-5 sm:px-6 relative">
             <h3 className="text-lg leading-6 font-medium text-white">
               Services
             </h3>
-            <p className="mt-1 max-w-2xl text-sm text-white">
+            <Button
+              className="absolute top-5 right-4"
+              aria-label="See all services"
+              onClick={() => {
+                navigate("/services");
+              }}
+            >
+              See all
+            </Button>
+            <p className="mt-1 max-w-2xl text-sm text-gray-300">
               Your available services.
             </p>
           </div>
-          <div className="border-t border-gray-900">
+          <div className="border-t border-gray-800">
             <div className="px-4 py-5 sm:p-6">
-              {user.services && user.services.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {user.services.map((service) => (
+              {user.Services && user.Services.length > 0 ? (
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-3">
+                  {user.Services.map((service) => (
                     <div
                       key={service.id}
-                      className="bg-bg overflow-hidden shadow rounded-lg"
+                      className="bg-bg-card overflow-hidden shadow rounded-lg card"
                     >
                       <div className="px-4 py-5 sm:p-6">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {service.name}
-                        </h4>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-lg font-medium text-white">
+                            {service.name}
+                          </h4>
+                        </div>
+                        <p className="mt-2 text-sm text-gray-300">
                           {service.description}
                         </p>
                         <div className="mt-4 flex justify-between items-center">
-                          <span className="text-lg font-medium text-indigo-600">
+                          <span className="text-lg font-semibold text-purple-400">
                             ${service.price}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            {service.duration} min
+                          <span className="text-sm text-gray-400">
+                            {service.duration}
                           </span>
                         </div>
                       </div>
@@ -272,94 +291,144 @@ function Profile() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-text-gray">No services available.</p>
+                <p className="text-sm text-gray-400">No services available.</p>
               )}
             </div>
           </div>
         </div>
 
         <div className="mt-8 bg-bg-card shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
+          <div className="px-4 py-5 sm:px-6 relative">
             <h3 className="text-lg leading-6 font-medium text-white">
               Available Slots
             </h3>
+            <Button
+              className="absolute top-5 right-4"
+              aria-label="See all slots"
+              onClick={() => {}}
+            >
+              See all
+            </Button>
             <p className="mt-1 max-w-2xl text-sm text-white">
               Your available time slots.
             </p>
           </div>
           <div className="border-t border-gray-900">
             <div className="px-4 py-5 sm:p-6">
-              {user.slots && user.slots.length > 0 ? (
+              {user.Slots && user.Slots.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {user.slots.map((slot) => (
-                    <div
-                      key={slot.id}
-                      className="bg-white overflow-hidden shadow rounded-lg"
-                    >
-                      <div className="px-4 py-5 sm:p-6">
-                        <p className="text-lg font-medium text-gray-900">
-                          {new Date(slot.start_time).toLocaleTimeString()} -{" "}
-                          {new Date(slot.end_time).toLocaleTimeString()}
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {new Date(slot.start_time).toLocaleDateString()}
-                        </p>
+                  {user.Slots.map((slot) => {
+                    const startDateTimeStr = `${slot.date}T${slot.start_time}`;
+                    const endDateTimeStr = `${slot.date}T${slot.end_time}`;
+                    const startDate = new Date(startDateTimeStr);
+                    const endDate = new Date(endDateTimeStr);
+
+                    return (
+                      <div
+                        key={slot.id}
+                        className="card overflow-hidden rounded-lg"
+                      >
+                        <div className="px-4 py-5 sm:p-6">
+                          <p className="text-lg font-medium text-white">
+                            {startDate.toLocaleTimeString(undefined, {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}{" "}
+                            -{" "}
+                            {endDate.toLocaleTimeString(undefined, {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          <p className="mt-1 text-sm text-gray-300">
+                            {formatDateLabel(startDate)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-text-gray">No slots available.</p>
+                <p className="text-sm text-gray-400">No slots available.</p>
               )}
             </div>
           </div>
         </div>
 
         <div className="mt-8 bg-bg-card shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
+          <div className="px-4 py-5 sm:px-6 relative">
             <h3 className="text-lg leading-6 font-medium text-white">
               Bookings
             </h3>
+            <Button
+              className="absolute top-5 right-4"
+              aria-label="See all bookings"
+              onClick={() => {}}
+            >
+              See all
+            </Button>
             <p className="mt-1 max-w-2xl text-sm text-white">
               Your recent bookings.
             </p>
           </div>
           <div className="border-t border-gray-900">
             <div className="px-4 py-5 sm:p-6">
-              {user.bookings && user.bookings.length > 0 ? (
+              {user.Bookings && user.Bookings.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                  {user.bookings.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="bg-white overflow-hidden shadow rounded-lg"
-                    >
-                      <div className="px-4 py-5 sm:p-6">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="text-lg font-medium text-gray-900">
-                              {booking.service.name}
-                            </h4>
-                            <p className="mt-1 text-sm text-gray-500">
-                              {new Date(booking.start_time).toLocaleString()} -{" "}
-                              {new Date(booking.end_time).toLocaleString()}
-                            </p>
+                  {user.Bookings.map((booking) => {
+                    const bookingDate = booking.end_datetime.split("T")[0];
+                    const startDateTimeStr = `${bookingDate}T${booking.start_time}`;
+                    const endDateTimeStr = `${bookingDate}T${booking.end_time}`;
+
+                    const startDate = new Date(startDateTimeStr);
+                    const endDate = new Date(endDateTimeStr);
+
+                    return (
+                      <div
+                        key={booking.id}
+                        className="card overflow-hidden shadow rounded-lg"
+                      >
+                        <div className="px-4 py-5 sm:p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="text-lg font-medium text-white">
+                                {booking.service_name}
+                              </h4>
+                              <p className="mt-1 text-sm text-gray-300">
+                                <strong>
+                                  {formatDateLabel(startDateTimeStr)}
+                                </strong>
+                                ,{" "}
+                                {startDate.toLocaleTimeString(undefined, {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                -{" "}
+                                {endDate.toLocaleTimeString(undefined, {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                booking.status === "confirmed"
+                                  ? "bg-green-100 text-green-800"
+                                  : booking.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                                {booking.status}
+                            </span>
                           </div>
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              booking.status === "confirmed"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {booking.status}
-                          </span>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-text-gray">No bookings found.</p>
+                <p className="text-sm text-gray-400">No bookings available.</p>
               )}
             </div>
           </div>

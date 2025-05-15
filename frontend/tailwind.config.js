@@ -16,7 +16,7 @@ module.exports = {
         'purple-main': '#C85CD1',
         'purple-hover': '#4338CA',
         'bg-card': '#312F3D',
-        'bg-card-hover': '#312E3D',
+        'bg-card-hover': '#454153',
       },
       fontWeight: {
         550: '550',

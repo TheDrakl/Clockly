@@ -27,7 +27,7 @@ const Bookings = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await api.get("/api/client/me/");
+        const response = await api.get("/api/client/bookings/");
         setUserData(response.data);
       } catch (error) {
         setError(error.message);
@@ -38,11 +38,11 @@ const Bookings = () => {
     fetchUserData();
   }, [navigate]);
 
-    const filterBookings = (isUpcoming) => {
+  const filterBookings = (isUpcoming) => {
     if (!userData?.Bookings) return [];
-    
-    return userData.Bookings.filter(booking => 
-      isUpcoming 
+
+    return userData.Bookings.filter((booking) =>
+      isUpcoming
         ? new Date(booking.end_datetime) > new Date()
         : new Date(booking.end_datetime) <= new Date()
     );
@@ -159,13 +159,13 @@ const Bookings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[100rem] mx-auto">
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
             Your Bookings
           </h2>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+          <p className="mt-3 max-w-2xl mx-auto text-xl text-text-main sm:mt-4">
             Manage your appointments and schedules
           </p>
         </div>
@@ -201,7 +201,7 @@ const Bookings = () => {
           </button>
         </div>
         {showForm && (
-          <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="fixed inset-0 bg-bg bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
               <h3 className="text-2xl font-semibold mb-4">Add New Booking</h3>
               <form onSubmit={handleFormSubmit}>
@@ -542,35 +542,39 @@ const Bookings = () => {
           </div>
         )}
         {/* Current bookings */}
-                <div className="mt-12">
-          <h3 className="text-xl font-semibold mb-4">Upcoming Bookings</h3>
+        <div className="mt-12">
+          <h3 className="text-xl font-semibold mb-4 text-white">
+            Upcoming Bookings
+          </h3>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filterBookings(true).map((booking) => (
-              <BookingCard 
-                key={booking.id} 
-                booking={booking} 
-                onEdit={() => handleEditBooking(booking)} 
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                onEdit={() => handleEditBooking(booking)}
               />
             ))}
             {filterBookings(true).length === 0 && (
-              <p className="text-gray-500">No upcoming bookings</p>
+              <p className="text-text-main">No upcoming bookings</p>
             )}
           </div>
         </div>
         {/* Bookings from the Past */}
         <div className="mt-12">
-          <h3 className="text-xl font-semibold mb-4">Past Bookings</h3>
+          <h3 className="text-xl font-semibold mb-4 text-white">
+            Past Bookings
+          </h3>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filterBookings(false).map((booking) => (
-              <BookingCard 
-                key={booking.id} 
-                booking={booking} 
-                onEdit={() => handleEditBooking(booking)} 
-                isPast 
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                onEdit={() => handleEditBooking(booking)}
+                isPast
               />
             ))}
             {filterBookings(false).length === 0 && (
-              <p className="text-gray-500">No past bookings</p>
+              <p className="text-text-main">No past bookings</p>
             )}
           </div>
         </div>
@@ -581,7 +585,11 @@ const Bookings = () => {
 
 const BookingCard = ({ booking, onEdit, isPast = false }) => {
   return (
-    <div className={`bg-white overflow-hidden shadow rounded-lg ${isPast ? 'opacity-80' : ''}`}>
+    <div
+      className={`card overflow-hidden shadow rounded-lg ${
+        isPast ? "opacity-80" : ""
+      }`}
+    >
       <div className="px-4 py-5 sm:p-6">
         <div className="relative">
           <button
@@ -591,27 +599,35 @@ const BookingCard = ({ booking, onEdit, isPast = false }) => {
             <FaEdit size={18} />
           </button>
         </div>
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-medium text-white">
           {booking.service_name}
         </h3>
         <div className="mt-4 space-y-2">
-          <p className="text-sm text-gray-500">
-            <span className="font-medium">Customer:</span> {booking.customer_name}
+          <p className="text-sm text-text-main">
+            <span className="font-medium text-white">Customer:</span>{" "}
+            {booking.customer_name}
           </p>
-          <p className="text-sm text-gray-500">
-            <span className="font-medium">Date:</span> {formatDate(booking.end_datetime.split("T")[0])}
+          <p className="text-sm text-text-main">
+            <span className="font-medium text-white">Date:</span>{" "}
+            {formatDate(booking.end_datetime.split("T")[0])}
           </p>
-          <p className="text-sm text-gray-500">
-            <span className="font-medium">Time:</span> {booking.start_time} - {booking.end_time}
+          <p className="text-sm text-text-main">
+            <span className="font-medium text-white">Time:</span>{" "}
+            {booking.start_time} - {booking.end_time}
           </p>
-          <p className="text-sm text-gray-500">
-            <span className="font-medium">Status:</span>{" "}
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              booking.status === "confirmed" ? "bg-green-100 text-green-800" :
-              booking.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-              "bg-red-100 text-red-800"
-            }`}>
-              {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1) || "Pending"}
+          <p className="text-sm text-text-main">
+            <span className="font-medium text-white">Status:</span>{" "}
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                booking.status === "confirmed"
+                  ? "bg-green-100 text-green-800"
+                  : booking.status === "pending"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {booking.status?.charAt(0).toUpperCase() +
+                booking.status?.slice(1) || "Pending"}
             </span>
           </p>
         </div>

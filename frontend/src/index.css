@@ -17,9 +17,35 @@
       mr-4
       transition-colors
       duration-200
-      hover:text-purple-main
+      hover:text-white
       select-none;
     -webkit-font-smoothing: antialiased;
     text-decoration: none;
   }
+  .active {
+    @apply text-purple-main;
+  }
+  .active:hover {
+    @apply text-purple-main;
+  }
+
+  .card {
+    @apply bg-bg-card
+  }
+  .card:hover {
+    @apply 
+    bg-bg-card-hover
+    hover:shadow-lg
+    transition-shadow 
+    duration-300 
+    border 
+  border-gray-700
+  }
+}
+
+input:-webkit-autofill {
+  background-color: #312F3D !important;
+  -webkit-box-shadow: 0 0 0px 1000px #312F3D inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
 }

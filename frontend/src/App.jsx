@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
 import UserBook from "./pages/UserBook.jsx";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { NavLink } from "react-router-dom";
 
 function AppContent() {
   const { isAuthenticated, logout } = useAuth();
@@ -18,34 +19,63 @@ function AppContent() {
   return (
     <div>
       <nav className="p-4 bg-nav flex gap-12 justify-center text-lg">
-        <Link to="/" className='link'>Home</Link>
-        <Link to="/about" className='link'>About</Link>
+        <NavLink
+          to="/"
+          className={({ isActive }) => (isActive ? "link active" : "link")}
+        >
+          Home
+        </NavLink>
+        <NavLink
+          to="/about"
+          className={({ isActive }) => (isActive ? "link active" : "link")}
+        >
+          About
+        </NavLink>
+
         {isAuthenticated ? (
           <>
             <button type="button" className="link" onClick={logout}>
               Log Out
             </button>
-            <Link to="/services" className="link">
+            <NavLink
+              to="/services"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
               Services
-            </Link>
-            <Link to="/bookings" className="link">
+            </NavLink>
+            <NavLink
+              to="/bookings"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
               Bookings
-            </Link>
-            <Link to="/slots" className="link">
+            </NavLink>
+            <NavLink
+              to="/slots"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
               Slots
-            </Link>
-            <Link to="/profile" className="link">
+            </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
               Profile
-            </Link>
+            </NavLink>
           </>
         ) : (
           <>
-            <Link to="/login" className="link">
+            <NavLink
+              to="/login"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
               Login
-            </Link>
-            <Link to="/register" className="link">
+            </NavLink>
+            <NavLink
+              to="/register"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
               Register
-            </Link>
+            </NavLink>
           </>
         )}
       </nav>

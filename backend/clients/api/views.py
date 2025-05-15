@@ -13,6 +13,7 @@ from core.tasks import send_appointment_email
 from datetime import datetime
 from django.utils import timezone
 import time
+from rest_framework.pagination import PageNumberPagination
 
 class ServiceListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ServiceSerializer
@@ -70,6 +71,24 @@ class BookingSlotListCreateAPIView(generics.ListCreateAPIView):
 
 class BookingSlotClientListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        services = ServiceSerializer(Service.objects.filter(user=request.user), many=True)
+        slots = AvailabilitySlotSerializer(AvailabilitySlot.objects.filter(user=request.user), many=True)
+        # bookings = BookingClientSerializer(Booking.objects.filter(user=request.user).order_by('-end_datetime'), many=True)
+
+        bookings_qs = Booking.objects.filter(user=request.user).order_by('-end_datetime')
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 20
+        result_page = paginator.paginate_queryset(bookings_qs, request)
+        bookings = BookingClientSerializer(result_page, many=True)
+        
+        return Response({
+            "Services": services.data,
+            "Slots": slots.data,
+            "Bookings": bookings.data,
+        })
 
     def post(self, request, *args, **kwargs):
         serializer = BookingClientSerializer(data=request.data)
@@ -216,9 +235,12 @@ class BookingRetrieveUpdateDestroyAPIVIew(generics.RetrieveUpdateDestroyAPIView)
 
 class DashboardAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        services = ServiceSerializer(Service.objects.filter(user=request.user), many=True)
-        slots = AvailabilitySlotSerializer(AvailabilitySlot.objects.filter(user=request.user), many=True)
-        bookings = BookingClientSerializer(Booking.objects.filter(user=request.user).order_by('-end_datetime'), many=True)
+        last_services = Service.objects.filter(user=request.user).order_by('-created_at')[:3]
+        last_slots = AvailabilitySlot.objects.filter(user=request.user).order_by('-date')[:3]
+        last_bookings = Booking.objects.filter(user=request.user).order_by('-end_datetime')[:3]
+        services = ServiceSerializer(last_services, many=True)
+        slots = AvailabilitySlotSerializer(last_slots, many=True)
+        bookings = BookingClientSerializer(last_bookings, many=True)
         user = UserSerializer(self.request.user)
         
         return Response({
