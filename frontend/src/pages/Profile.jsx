@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -12,7 +11,6 @@ function Profile() {
   const [saveError, setSaveError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -43,11 +41,24 @@ function Profile() {
   };
 
   const handleSave = async () => {
+    const currentSlug = (user.user_slug || "").trim().toLowerCase();
+    const newSlug = (slug || "").trim().toLowerCase();
+
+    if (newSlug === currentSlug) {
+      setIsEditing(false);
+      setSaveError(false);
+      return;
+    }
+
     try {
       const response = await api.put("/api/client/me/", {
-        user_slug: slug,
+        user_slug: slug.trim(),
       });
       setSaveError(false);
+      setUser((prev) => ({
+        ...prev,
+        user_slug: slug.trim(),
+      }));
     } catch (error) {
       if (
         error.response &&
@@ -62,15 +73,17 @@ function Profile() {
       } else {
         console.error("error:", error);
       }
+    } finally {
+      setIsEditing(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <p className="text-lg text-gray-600">Loading profile...</p>
+            <p className="text-lg text-text-main">Loading profile...</p>
           </div>
         </div>
       </div>
@@ -79,9 +92,9 @@ function Profile() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border-l-4 border-red-400 p-4">
+          <div className="bg-bg border-l-4 border-red-400 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
@@ -97,7 +110,7 @@ function Profile() {
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-text-main">{error}</p>
               </div>
             </div>
           </div>
@@ -108,10 +121,10 @@ function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <p className="text-lg text-gray-600">No user data found</p>
+            <p className="text-lg text-white">No user data found</p>
           </div>
         </div>
       </div>
@@ -119,43 +132,41 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="bg-bg-card shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-white">
               Profile Information
             </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            <p className="mt-1 max-w-2xl text-sm text-white">
               Personal details and services.
             </p>
           </div>
-          <div className="border-t border-gray-200">
+          <div className="border-t border-gray-900">
             <dl>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-white">Full name</dt>
+                <dd className="mt-1 text-sm text-text-gray sm:mt-0 sm:col-span-2">
                   {user.username}
                 </dd>
               </div>
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
+              <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-white">
                   Email address
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <dd className="mt-1 text-sm text-text-gray sm:mt-0 sm:col-span-2">
                   {user.email}
                 </dd>
               </div>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
-                  Phone number
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-white">Phone number</dt>
+                <dd className="mt-1 text-sm text-text-gray sm:mt-0 sm:col-span-2">
                   {user.phone || "Not provided"}
                 </dd>
               </div>
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500 flex items-center gap-1">
+              <div className="bg-bg-card px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-white flex items-center gap-1">
                   Your Link
                   <span className="relative group cursor-pointer">
                     <svg
@@ -170,43 +181,38 @@ function Profile() {
                     </div>
                   </span>
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <dd className="mt-1 text-sm text-text-main sm:mt-0 sm:col-span-2">
                   <div className="max-w-md w-full">
-                    {/* Input, Copy, Edit in one row */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 shadow-sm">
-                        {/* Prefix */}
-                        <span className="text-gray-500 select-none">
+                      <div className="flex items-center flex-1 min-w-0 rounded-md border border-gray-300 bg-bg px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-purple-500">
+                        <span className="text-gray-500 truncate mr-1">
                           {baseUrl}
                         </span>
 
-                        {/* Editable slug input */}
                         <input
                           type="text"
                           value={slug}
                           readOnly={!isEditing}
                           onChange={(e) => setSlug(e.target.value)}
-                          className={`flex-1 bg-transparent text-gray-700 text-sm outline-none ${
+                          className={`min-w-0 flex-1 bg-transparent text-text-main text-sm outline-none border-none p-0 ${
                             isEditing
                               ? "cursor-text"
                               : "cursor-default select-all"
                           }`}
                         />
-
-                        {/* Copy button */}
-                        {!isEditing && (
-                          <button
-                            onClick={() => handleCopy(fullUrl)}
-                            className="ml-2 text-sm text-blue-600 hover:underline"
-                          >
-                            {copied ? "Copied!" : "Copy"}
-                          </button>
-                        )}
                       </div>
 
-                      {/* Edit/Save button */}
+                      {!isEditing && (
+                        <button
+                          onClick={() => handleCopy(fullUrl)}
+                          className="ml-2 text-sm text-purple-main hover:underline whitespace-nowrap"
+                        >
+                          {copied ? "Copied!" : "Copy"}
+                        </button>
+                      )}
+
                       <button
-                        className="ml-4 text-blue-600 hover:underline whitespace-nowrap"
+                        className="ml-4 text-purple-main hover:underline whitespace-nowrap"
                         onClick={() => {
                           if (isEditing) handleSave();
                           setIsEditing(!isEditing);
@@ -216,7 +222,6 @@ function Profile() {
                       </button>
                     </div>
 
-                    {/* Error message below the row */}
                     {saveError && (
                       <p className="text-red-500 text-[0.75rem] mt-1 ml-[2px]">
                         That link already exists!
@@ -229,23 +234,23 @@ function Profile() {
           </div>
         </div>
 
-        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="mt-8 bg-bg-card shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-white">
               Services
             </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            <p className="mt-1 max-w-2xl text-sm text-white">
               Your available services.
             </p>
           </div>
-          <div className="border-t border-gray-200">
+          <div className="border-t border-gray-900">
             <div className="px-4 py-5 sm:p-6">
               {user.services && user.services.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {user.services.map((service) => (
                     <div
                       key={service.id}
-                      className="bg-white overflow-hidden shadow rounded-lg"
+                      className="bg-bg overflow-hidden shadow rounded-lg"
                     >
                       <div className="px-4 py-5 sm:p-6">
                         <h4 className="text-lg font-medium text-gray-900">
@@ -267,22 +272,22 @@ function Profile() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No services available.</p>
+                <p className="text-sm text-text-gray">No services available.</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="mt-8 bg-bg-card shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-white">
               Available Slots
             </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            <p className="mt-1 max-w-2xl text-sm text-white">
               Your available time slots.
             </p>
           </div>
-          <div className="border-t border-gray-200">
+          <div className="border-t border-gray-900">
             <div className="px-4 py-5 sm:p-6">
               {user.slots && user.slots.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -304,22 +309,22 @@ function Profile() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No slots available.</p>
+                <p className="text-sm text-text-gray">No slots available.</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="mt-8 bg-bg-card shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-white">
               Bookings
             </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            <p className="mt-1 max-w-2xl text-sm text-white">
               Your recent bookings.
             </p>
           </div>
-          <div className="border-t border-gray-200">
+          <div className="border-t border-gray-900">
             <div className="px-4 py-5 sm:p-6">
               {user.bookings && user.bookings.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
@@ -354,7 +359,7 @@ function Profile() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No bookings found.</p>
+                <p className="text-sm text-text-gray">No bookings found.</p>
               )}
             </div>
           </div>

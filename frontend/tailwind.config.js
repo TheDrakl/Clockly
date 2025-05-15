@@ -12,8 +12,11 @@ module.exports = {
         nav: "#1D1A24",
         bg: "#282634",
         'text-main': '#928F9E',
+        'text-gray': '#BBB9C7',
         'purple-main': '#C85CD1',
         'purple-hover': '#4338CA',
+        'bg-card': '#312F3D',
+        'bg-card-hover': '#312E3D',
       },
       fontWeight: {
         550: '550',
