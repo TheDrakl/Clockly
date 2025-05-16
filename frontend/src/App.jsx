@@ -12,6 +12,7 @@ import PublicRoute from "./components/PublicRoute.jsx";
 import UserBook from "./pages/UserBook.jsx";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { NavLink } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 function AppContent() {
   const { isAuthenticated, logout } = useAuth();
@@ -34,14 +35,17 @@ function AppContent() {
 
         {isAuthenticated ? (
           <>
-            <button type="button" className="link" onClick={logout}>
-              Log Out
-            </button>
             <NavLink
               to="/services"
               className={({ isActive }) => (isActive ? "link active" : "link")}
             >
               Services
+            </NavLink>
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) => (isActive ? "link active" : "link")}
+            >
+              Dashboard
             </NavLink>
             <NavLink
               to="/bookings"
@@ -61,6 +65,9 @@ function AppContent() {
             >
               Profile
             </NavLink>
+            <button type="button" className="link" onClick={logout}>
+              Log Out
+            </button>
           </>
         ) : (
           <>
@@ -79,6 +86,8 @@ function AppContent() {
           </>
         )}
       </nav>
+
+      <ScrollToTop />
 
       <Routes>
         <Route path="/" element={<Home />} />

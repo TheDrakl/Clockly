@@ -305,7 +305,9 @@ function Profile() {
             <Button
               className="absolute top-5 right-4"
               aria-label="See all slots"
-              onClick={() => {}}
+              onClick={() => {
+                navigate("/slots");
+              }}
             >
               See all
             </Button>
@@ -363,7 +365,9 @@ function Profile() {
             <Button
               className="absolute top-5 right-4"
               aria-label="See all bookings"
-              onClick={() => {}}
+              onClick={() => {
+                navigate("/bookings");
+              }}
             >
               See all
             </Button>
@@ -419,7 +423,7 @@ function Profile() {
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                                {booking.status}
+                              {booking.status}
                             </span>
                           </div>
                         </div>

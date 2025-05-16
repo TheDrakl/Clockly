@@ -92,26 +92,23 @@ const Services = () => {
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className="card overflow-hidden shadow rounded-lg"
+                  className="bg-bg-card overflow-hidden shadow rounded-lg card"
                 >
                   <div className="px-4 py-5 sm:p-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg leading-6 font-medium text-white">
+                      <h4 className="text-lg font-medium text-white">
                         {service.name}
-                      </h3>
-                      <button
-                        onClick={() => navigate(`/services/${service.id}/edit`)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        <FaEdit className="h-5 w-5" />
-                      </button>
+                      </h4>
                     </div>
-                    <div className="mt-2 max-w-xl text-sm text-white">
-                      <p>{service.description}</p>
-                    </div>
-                    <div className="mt-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Active
+                    <p className="mt-2 text-sm text-gray-300">
+                      {service.description}
+                    </p>
+                    <div className="mt-4 flex justify-between items-center">
+                      <span className="text-lg font-semibold text-purple-400">
+                        ${service.price}
+                      </span>
+                      <span className="text-sm text-gray-400">
+                        {service.duration}
                       </span>
                     </div>
                   </div>

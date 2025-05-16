@@ -69,14 +69,14 @@ export default function LoginForm() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-white"
               >
                 Email
               </label>
               <input
                 type="email"
                 id="email"
-                className="mt-1 block w-full py-[0.2rem] rounded-md bg-bg-card shadow-sm focus:outline-none focus:ring-0 focus:border-gray-800 text-sm"
+                className="mt-1 block w-full py-[0.2rem] text-text-gray rounded-md bg-bg-card shadow-sm focus:outline-none focus:ring-0 focus:border-gray-800 text-sm"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -88,14 +88,14 @@ export default function LoginForm() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-white"
               >
                 Password
               </label>
               <input
                 type="password"
                 id="password"
-                className="mt-1 block w-full py-[0.2rem] rounded-md bg-bg-card shadow-sm focus:outline-none focus:ring-0 focus:border-gray-800 text-sm"
+                className="mt-1 block w-full py-[0.2rem] text-text-gray rounded-md bg-bg-card shadow-sm focus:outline-none focus:ring-0 focus:border-gray-800 text-sm"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

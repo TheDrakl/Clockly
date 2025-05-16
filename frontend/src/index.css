@@ -41,6 +41,42 @@
     border 
   border-gray-700
   }
+  .react-datepicker {
+    @apply
+    bg-bg-card
+    shadow-lg
+    border
+    border-gray-800
+  }
+}
+
+.react-datepicker__header {
+  background-color: #312F3D !important;
+}
+
+.react-datepicker__current-month, .react-datepicker-time__header, .react-datepicker-year-header {
+  color: white;
+}
+
+.react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
+  color: white;
+}
+
+.react-datepicker__day-name:hover, .react-datepicker__day:hover, .react-datepicker__time-name:hover {
+  color: #928F9E
+}
+
+.react-datepicker__day--disabled, .react-datepicker__month-text--disabled, .react-datepicker__quarter-text--disabled, .react-datepicker__year-text--disabled {
+  color: #928F9E
+}
+
+.react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range, .react-datepicker__month-text--selected, .react-datepicker__month-text--in-selecting-range, .react-datepicker__month-text--in-range, .react-datepicker__quarter-text--selected, .react-datepicker__quarter-text--in-selecting-range, .react-datepicker__quarter-text--in-range, .react-datepicker__year-text--selected, .react-datepicker__year-text--in-selecting-range, .react-datepicker__year-text--in-range {
+  background-color: #C85CD1;
+}
+
+.react-datepicker__day--selected:not([aria-disabled=true]):hover, .react-datepicker__day--in-selecting-range:not([aria-disabled=true]):hover, .react-datepicker__day--in-range:not([aria-disabled=true]):hover, .react-datepicker__month-text--selected:not([aria-disabled=true]):hover, .react-datepicker__month-text--in-selecting-range:not([aria-disabled=true]):hover, .react-datepicker__month-text--in-range:not([aria-disabled=true]):hover, .react-datepicker__quarter-text--selected:not([aria-disabled=true]):hover, .react-datepicker__quarter-text--in-selecting-range:not([aria-disabled=true]):hover, .react-datepicker__quarter-text--in-range:not([aria-disabled=true]):hover, .react-datepicker__year-text--selected:not([aria-disabled=true]):hover, .react-datepicker__year-text--in-selecting-range:not([aria-disabled=true]):hover, .react-datepicker__year-text--in-range:not([aria-disabled=true]):hover {
+  background-color: #C85CD1;
+  color: white
 }
 
 input:-webkit-autofill {

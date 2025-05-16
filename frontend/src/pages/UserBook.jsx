@@ -127,10 +127,10 @@ function UserBook() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-bg py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {errorMessage && (
-                    <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+                    <div className="mb-4 bg-bg border-l-4 border-red-400 p-4">
                         <div className="flex">
                             <div className="flex-shrink-0">
                                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -146,12 +146,12 @@ function UserBook() {
 
                 {!isDateSelection && !availableSlots.length && services.length > 0 && (
                     <div className="space-y-6">
-                        <h2 className="text-3xl font-bold text-gray-900">Select a Service</h2>
+                        <h2 className="text-3xl font-bold text-white text-center">Select a Service</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {services.map((service) => (
                                 <div
                                     key={service.id}
-                                    className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-200 transform hover:scale-105 hover:shadow-lg cursor-pointer
+                                    className={`card rounded-lg shadow-sm overflow-hidden transition-all duration-200 transform hover:scale-105 hover:shadow-lg cursor-pointer
                                         ${activeService === service.id ? 'ring-2 ring-indigo-500' : ''}`}
                                     onClick={() => handleServiceClick(service)}
                                 >
@@ -165,11 +165,11 @@ function UserBook() {
                                         </div>
                                     )}
                                     <div className="p-6">
-                                        <h3 className="text-xl font-semibold text-gray-900">{service.name}</h3>
-                                        <p className="mt-2 text-gray-600">{service.description}</p>
+                                        <h3 className="text-xl font-semibold text-white">{service.name}</h3>
+                                        <p className="mt-2 text-white">{service.description}</p>
                                         <div className="mt-4 flex justify-between items-center">
-                                            <span className="text-lg font-medium text-indigo-600">${service.price}</span>
-                                            <span className="text-sm text-gray-500">{service.duration} min</span>
+                                            <span className="text-lg font-medium text-purple-400">${service.price}</span>
+                                            <span className="text-sm text-gray-400">{service.duration} min</span>
                                         </div>
                                     </div>
                                 </div>
@@ -188,10 +188,10 @@ function UserBook() {
                 )}
 
                 {isDateSelection && !availableSlots.length && (
-                    <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Choose a Date</h2>
+                    <div className="max-w-md mx-auto bg-bg-card rounded-lg shadow-sm p-6">
+                        <h2 className="text-2xl font-bold text-white mb-6 text-center">Choose a Date</h2>
                         <div className="space-y-6">
-                            <div className="border rounded-lg p-4 items-center text-center">
+                            <div className="rounded-lg p-4 items-center text-center">
                                 <DatePicker
                                     selected={selectedDate}
                                     onChange={handleDateChange}
@@ -221,15 +221,15 @@ function UserBook() {
 
                 {!success && availableSlots.length > 0 && !selectedSlot && (
                     <div className="max-w-4xl mx-auto">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Time Slots</h2>
+                        <h2 className="text-2xl font-bold text-white mb-6">Available Time Slots</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {availableSlots.map((slot, index) => (
                                 <div
                                     key={index}
-                                    className="bg-white p-4 rounded-lg shadow-sm text-center cursor-pointer hover:bg-indigo-50 transition-colors duration-200"
+                                    className="card p-4 rounded-lg shadow-sm text-center cursor-pointer"
                                     onClick={() => handleSlotClick(slot)}
                                 >
-                                    <p className="text-lg font-medium text-gray-900">
+                                    <p className="text-lg font-medium text-text-gray">
                                         {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                                     </p>
                                 </div>
@@ -247,50 +247,50 @@ function UserBook() {
                 )}
 
                 {selectedSlot && (
-                    <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Book Your Appointment</h2>
+                    <div className="max-w-md mx-auto bg-bg-card rounded-lg shadow-sm p-6">
+                        <h2 className="text-2xl font-bold text-white mb-6">Book Your Appointment</h2>
                         <form onSubmit={handleBookingSubmit} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Name *</label>
+                                <label className="block text-sm font-medium text-white">Name *</label>
                                 <input
                                     type="text"
                                     name="customer_name"
                                     value={bookingForm.customer_name}
                                     onChange={handleBookingFormChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="mt-1 block w-full p-[0.1rem] rounded-md bg-bg-card border border-bg-card shadow-sm outline-none text-text-gray"
                                     required
                                     maxLength={50}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Email *</label>
+                                <label className="block text-sm font-medium text-white">Email *</label>
                                 <input
                                     type="email"
                                     name="customer_email"
                                     value={bookingForm.customer_email}
                                     onChange={handleBookingFormChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="mt-1 block w-full p-[0.1rem] rounded-md bg-bg-card border border-bg-card shadow-sm outline-none text-text-gray"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                                <label className="block text-sm font-medium text-white">Phone</label>
                                 <input
                                     type="tel"
                                     name="customer_phone"
                                     value={bookingForm.customer_phone}
                                     onChange={handleBookingFormChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="mt-1 block w-full p-[0.1rem] rounded-md bg-bg-card border border-bg-card shadow-sm outline-none text-text-gray"
                                     maxLength={20}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Notes</label>
+                                <label className="block text-sm font-medium text-white">Notes</label>
                                 <textarea
                                     name="notes"
                                     value={bookingForm.notes}
                                     onChange={handleBookingFormChange}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="mt-1 block w-full p-[0.1rem] rounded-md bg-bg-card border border-bg-card shadow-sm outline-none text-text-gray"
                                     rows="3"
                                 />
                             </div>
@@ -314,7 +314,7 @@ function UserBook() {
                 )}
 
                 {success && (
-                    <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+                    <div className="mb-4 bg-bg border-l-4 border-green-400 p-4">
                         <div className="flex">
                             <div className="flex-shrink-0">
                                 <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">

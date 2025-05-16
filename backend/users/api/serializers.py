@@ -25,7 +25,6 @@ class LoginSerializer(serializers.Serializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField()
-
     class Meta:
         model = CustomUser
         fields = ['email', 'password', 'username', 'password2']
