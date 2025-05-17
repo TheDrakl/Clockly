@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaEdit } from "react-icons/fa";
 import { formatDate } from "../utils/format";
-import api from '../api/api';
-import formatDateLabel from "../utils/formatDate.js"
+import api from "../api/api";
+import formatDateLabel from "../utils/formatDate.js";
+import ErrorMessage from "../components/ErrorMessage.jsx";
 
 const Slots = () => {
   const { username } = useParams();
@@ -13,7 +14,7 @@ const Slots = () => {
   useEffect(() => {
     const fetchSlots = async () => {
       try {
-        const response = await api.get('/api/client/availability-slots/');
+        const response = await api.get("/api/client/availability-slots/");
         setSlots(response.data);
       } catch (error) {
         setError("Error fetching slots");
@@ -26,22 +27,7 @@ const Slots = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mt-8 bg-red-50 border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ErrorMessage error={error} />
     );
   }
 
@@ -59,15 +45,28 @@ const Slots = () => {
 
         <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {slots.map((slot) => (
-            <div key={slot.id} className="card overflow-hidden shadow rounded-lg">
+            <div
+              key={slot.id}
+              className="card overflow-hidden shadow rounded-lg"
+            >
               <div className="relative px-4 py-5 sm:p-6">
                 <button className="absolute top-2 right-2 text-gray-500 hover:text-indigo-600">
                   <FaEdit size={18} />
                 </button>
 
-                <h3 className="text-lg font-medium text-white">Date: <span className="text-text-main">{formatDateLabel(slot.date)}</span></h3>
-                <p className="mt-1 text-sm text-white">Start: <span className="text-text-main">{slot.start_time}</span></p>
-                <p className="mt-1 text-sm text-white">End: <span className="text-text-main">{slot.end_time}</span></p>
+                <h3 className="text-lg font-medium text-white">
+                  Date:{" "}
+                  <span className="text-text-main">
+                    {formatDateLabel(slot.date)}
+                  </span>
+                </h3>
+                <p className="mt-1 text-sm text-white">
+                  Start:{" "}
+                  <span className="text-text-main">{slot.start_time}</span>
+                </p>
+                <p className="mt-1 text-sm text-white">
+                  End: <span className="text-text-main">{slot.end_time}</span>
+                </p>
               </div>
             </div>
           ))}

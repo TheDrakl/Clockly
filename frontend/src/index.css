@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer components {
+  body {
+    font-family: 'Inter', 'sans-serif';
+  }
   .link {
     @apply
       flex

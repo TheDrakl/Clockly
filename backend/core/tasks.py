@@ -198,4 +198,22 @@ def delete_old_bookings():
 
     logger.info(f'{count} bookings were removed!')
 
-        
+
+@shared_task
+def delete_unconfirmed_bookings():
+    delete_after_minutes = timedelta(minutes=15)
+    time_now = timezone.now()
+
+    datetime_before = time_now - delete_after_minutes
+
+    bookings_to_delete = Booking.objects.filter(created_at__lt=datetime_before, status='pending')
+
+    if not bookings_to_delete:
+        logger.info("There's no bookings to delete!")
+        return
+
+    count = bookings_to_delete.count()
+
+    bookings_to_delete.delete()
+
+    logger.info(f'{count} pending bookings were removed!')

@@ -31,7 +31,7 @@ export default function LoginForm() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <div className="min-h-screen flex items-center justify-center bg-bg font-inter px-4">
-        <div className="w-full max-w-md bg-bg-card shadow-md rounded-xl p-8 space-y-6">
+        <div className="w-full max-w-md bg-bg-card shadow-md rounded-xl p-8 space-y-6 mt-[-10rem]">
           <h2 className="text-3xl font-bold text-center text-white">Sign In</h2>
           <div className="w-full flex justify-center">
             <div className="w-full max-w-xs">

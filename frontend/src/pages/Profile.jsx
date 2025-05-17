@@ -4,6 +4,7 @@ import Button from "../components/PurpleButton.jsx";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import formatDateLabel from "../utils/formatDate.js";
+import ErrorMessage from "../components/ErrorMessage.jsx";
 
 function Profile() {
   const baseUrl = `${window.location.origin}/users/`;
@@ -99,32 +100,7 @@ function Profile() {
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-bg border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-text-main">{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ErrorMessage error={error} />;
   }
 
   if (!user) {
@@ -319,7 +295,15 @@ function Profile() {
             <div className="px-4 py-5 sm:p-6">
               {user.Slots && user.Slots.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {user.Slots.map((slot) => {
+                  {user.Slots.filter((slot) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); 
+
+                    const slotDate = new Date(slot.date);
+                    slotDate.setHours(0, 0, 0, 0);
+
+                    return slotDate.getTime() >= today.getTime();
+                  }).map((slot) => {
                     const startDateTimeStr = `${slot.date}T${slot.start_time}`;
                     const endDateTimeStr = `${slot.date}T${slot.end_time}`;
                     const startDate = new Date(startDateTimeStr);
@@ -379,57 +363,71 @@ function Profile() {
             <div className="px-4 py-5 sm:p-6">
               {user.Bookings && user.Bookings.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                  {user.Bookings.map((booking) => {
-                    const bookingDate = booking.end_datetime.split("T")[0];
-                    const startDateTimeStr = `${bookingDate}T${booking.start_time}`;
-                    const endDateTimeStr = `${bookingDate}T${booking.end_time}`;
+                  {(() => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
 
-                    const startDate = new Date(startDateTimeStr);
-                    const endDate = new Date(endDateTimeStr);
+                    const filteredBookings = user.Bookings.filter((booking) => {
+                      const bookingDate = booking.end_datetime.split("T")[0];
+                      const endDateTimeStr = `${bookingDate}T${booking.end_time}`;
+                      const bookingEndDate = new Date(endDateTimeStr);
+                      bookingEndDate.setHours(0, 0, 0, 0);
 
-                    return (
-                      <div
-                        key={booking.id}
-                        className="card overflow-hidden shadow rounded-lg"
-                      >
-                        <div className="px-4 py-5 sm:p-6">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="text-lg font-medium text-white">
-                                {booking.service_name}
-                              </h4>
-                              <p className="mt-1 text-sm text-gray-300">
-                                <strong>
-                                  {formatDateLabel(startDateTimeStr)}
-                                </strong>
-                                ,{" "}
-                                {startDate.toLocaleTimeString(undefined, {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}{" "}
-                                -{" "}
-                                {endDate.toLocaleTimeString(undefined, {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
+                      return bookingEndDate.getTime() >= today.getTime();
+                    });
+
+                    return filteredBookings.map((booking) => {
+                      const bookingDate = booking.end_datetime.split("T")[0];
+                      const startDateTimeStr = `${bookingDate}T${booking.start_time}`;
+                      const endDateTimeStr = `${bookingDate}T${booking.end_time}`;
+
+                      const startDate = new Date(startDateTimeStr);
+                      const endDate = new Date(endDateTimeStr);
+
+                      return (
+                        <div
+                          key={booking.id}
+                          className="card overflow-hidden shadow rounded-lg"
+                        >
+                          <div className="px-4 py-5 sm:p-6">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="text-lg font-medium text-white">
+                                  {booking.service_name}
+                                </h4>
+                                <p className="mt-1 text-sm text-gray-300">
+                                  <strong>
+                                    {formatDateLabel(startDateTimeStr)}
+                                  </strong>
+                                  ,{" "}
+                                  {startDate.toLocaleTimeString(undefined, {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}{" "}
+                                  -{" "}
+                                  {endDate.toLocaleTimeString(undefined, {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </p>
+                              </div>
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  booking.status === "confirmed"
+                                    ? "bg-green-100 text-green-800"
+                                    : booking.status === "pending"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {booking.status}
+                              </span>
                             </div>
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                booking.status === "confirmed"
-                                  ? "bg-green-100 text-green-800"
-                                  : booking.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {booking.status}
-                            </span>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">No bookings available.</p>

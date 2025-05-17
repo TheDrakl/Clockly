@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { FaPlus, FaEdit } from "react-icons/fa";
 import { formatDate } from "../utils/format";
 import api from "../api/api";
+import ErrorMessage from "../components/ErrorMessage.jsx";
 
 const Bookings = () => {
   const [userData, setUserData] = useState(null);
-  const [upcomingBookings, setUpcomingBookings] = useState([]);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -151,7 +151,7 @@ const Bookings = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <ErrorMessage error={error} />;
   }
 
   if (!userData) {
@@ -161,36 +161,24 @@ const Bookings = () => {
   return (
     <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[100rem] mx-auto">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-            Your Bookings
-          </h2>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-text-main sm:mt-4">
-            Manage your appointments and schedules
-          </p>
-        </div>
-        {error && (
-          <div className="mt-8 bg-red-50 border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
+        {!userData?.Bookings && (
+          <div className="text-center">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+              Your Bookings
+            </h2>
+            <p className="mt-3 max-w-2xl mx-auto text-xl text-text-main sm:mt-4">
+              Manage your appointments and schedules
+            </p>
           </div>
         )}
+        {userData?.Bookings && (
+          <div className="text-center">
+            <h2 className="text-1xl font-extrabold text-white sm:text-3xl">
+              You don't have any bookings yet!
+            </h2>
+          </div>
+        )}
+        {error && <ErrorMessage error={error} />}
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => setShowForm(true)}
@@ -542,42 +530,46 @@ const Bookings = () => {
           </div>
         )}
         {/* Current bookings */}
-        <div className="mt-12">
-          <h3 className="text-xl font-semibold mb-4 text-white">
-            Upcoming Bookings
-          </h3>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filterBookings(true).map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                onEdit={() => handleEditBooking(booking)}
-              />
-            ))}
-            {filterBookings(true).length === 0 && (
-              <p className="text-text-main">No upcoming bookings</p>
-            )}
+        {userData?.Bookings && (
+          <div className="mt-12">
+            <h3 className="text-xl font-semibold mb-4 text-white">
+              Upcoming Bookings
+            </h3>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filterBookings(true).map((booking) => (
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  onEdit={() => handleEditBooking(booking)}
+                />
+              ))}
+              {filterBookings(true).length === 0 && (
+                <p className="text-text-main">No upcoming bookings</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         {/* Bookings from the Past */}
-        <div className="mt-12">
-          <h3 className="text-xl font-semibold mb-4 text-white">
-            Past Bookings
-          </h3>
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filterBookings(false).map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                onEdit={() => handleEditBooking(booking)}
-                isPast
-              />
-            ))}
-            {filterBookings(false).length === 0 && (
-              <p className="text-text-main">No past bookings</p>
-            )}
+        {userData?.Bookings && (
+          <div className="mt-12">
+            <h3 className="text-xl font-semibold mb-4 text-white">
+              Past Bookings
+            </h3>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filterBookings(false).map((booking) => (
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  onEdit={() => handleEditBooking(booking)}
+                  isPast
+                />
+              ))}
+              {filterBookings(false).length === 0 && (
+                <p className="text-text-main">No past bookings</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
