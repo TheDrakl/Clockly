@@ -7,6 +7,7 @@ import Profile from "./pages/Profile.jsx";
 import Services from "./pages/Services.jsx";
 import Bookings from "./pages/Bookings.jsx";
 import Slots from "./pages/Slots.jsx";
+import BookingVerify from "./pages/BookingVerify.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
 import UserBook from "./pages/UserBook.jsx";
@@ -141,6 +142,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Route path="/bookings/verify-booking/:token" element={<BookingVerify />} />
       </Routes>
     </div>
   );

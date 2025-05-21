@@ -37,6 +37,18 @@ function UserBook() {
     };
 
     getServices();
+
+    localStorage.setItem("verified", "false");
+
+    const intervalId = setInterval(() => {
+      if (localStorage.getItem("verified") === "true") {
+        setSuccess(true);
+        setSelectedVerification(false);
+        clearInterval(intervalId);
+      }
+    }, 10000);
+
+    return () => clearInterval(intervalId);
   }, [user_slug]);
 
   const handleServiceClick = (service) => {
@@ -44,7 +56,22 @@ function UserBook() {
   };
 
   const handleContinue = async () => {
-    if (selectedDate) {
+    if (isServiceSelection) {
+      if (activeService === null) {
+        setErrorMessage("Please select a service before continuing.");
+        return;
+      }
+      setErrorMessage("");
+      setIsServiceSelection(false);
+      setIsDateSelection(true);
+      return;
+    }
+
+    if (
+      isDateSelection &&
+      selectedDate instanceof Date &&
+      !isNaN(selectedDate)
+    ) {
       setIsLoadingSlots(true);
       try {
         const formattedDate = selectedDate.toLocaleDateString("en-CA");
@@ -68,9 +95,8 @@ function UserBook() {
       } finally {
         setIsLoadingSlots(false);
       }
-    } else {
-      setIsServiceSelection(false);
-      setIsDateSelection(true);
+    } else if (isDateSelection && !selectedDate) {
+      setErrorMessage("Please select a date before continuing.");
     }
   };
 
@@ -117,19 +143,14 @@ function UserBook() {
           customer_phone: bookingForm.customer_phone || "",
           note: bookingForm.notes || null,
           confirmed: true,
+          status: "pending",
         }
       );
 
       if (response.status === 201) {
-        setSuccess(true);
         setErrorMessage("");
         setSelectedSlot(null);
-        setBookingForm({
-          customer_name: "",
-          customer_email: "",
-          customer_phone: "",
-          notes: "",
-        });
+        localStorage.setItem("verified", false);
       }
     } catch (error) {
       setErrorMessage(
@@ -142,7 +163,7 @@ function UserBook() {
   return (
     <div className="min-h-screen bg-bg py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {errorMessage?.trim() && services.length > 1 && (
+        {errorMessage?.trim() && (
           <ErrorMessage
             error={
               errorMessage || "Something went wrong. Please try again later!"
@@ -283,7 +304,7 @@ function UserBook() {
                 setAvailableSlots(false);
                 setIsDateSelection(false);
 
-                // handleBookingSubmit(e)
+                handleBookingSubmit(e);
               }}
               className="space-y-6"
             >
@@ -371,31 +392,24 @@ function UserBook() {
                 </span>
               </p>
               <p>Please, confirm it to proceed with your booking.</p>
-              <p>
-                If you don’t see the email, check your spam folder.
-              </p>
+              <p>If you don’t see the email, check your spam folder.</p>
             </div>
           </div>
         )}
 
         {success && (
-          <div className="mb-4 bg-bg border-l-4 border-green-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-green-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-4l5-5-1.414-1.414L9 11.172l-1.586-1.586L6 11l3 3z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-green-700">Booking successful! 🎉</p>
+          <div className="max-w-md mx-auto rounded-lg shadow-sm p-6">
+            <div className="mb-4 bg-bg border-l-4 border-green-400 p-4">
+              <div className="flex">
+                </div>
+                <div className="ml-3">
+                  <p className="text-lg text-green-700">
+                    Booking successful! 🎉
+                  </p>
+                  <p className="text-sm text-white mt-2">
+                    Your booking has been verified! You will receive an email
+                    with all the details shortly.
+                  </p>
               </div>
             </div>
           </div>
