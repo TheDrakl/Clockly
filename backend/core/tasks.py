@@ -123,6 +123,35 @@ def send_registration_success(user_email):
     )
     logger.info(f"Account was verified with verification code for {user_email}")
 
+@shared_task
+def send_booking_verification(user_email, verification_link):
+    logger.info("Booking verification started")
+
+    message = f"""
+        Hello,
+
+        Thank you for booking with Clockly!
+
+        Please verify your booking by clicking the link below:
+
+        {verification_link}
+
+        If you did not make this booking, you can safely ignore this message.
+
+        Best regards,  
+        Clockly Team
+    """
+
+    send_mail(
+        "Verify Your Booking",
+        message,
+        settings.EMAIL_HOST_USER,
+        [user_email],
+        fail_silently=True,
+    )
+
+    logger.info(f'Booking verification link sent to {user_email}')
+
 
 @shared_task
 def send_booking_reminder(booking=None):

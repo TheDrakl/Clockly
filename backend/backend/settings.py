@@ -16,6 +16,7 @@ DEBUG = os.getenv("DEBUG")
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     'users',
     'clients',
     'bookings',
+    'core',
 
     'django_celery_beat',
 ]

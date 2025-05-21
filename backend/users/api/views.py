@@ -238,6 +238,7 @@ class ResendCodeAPIView(APIView):
 class GoogleAuthAPIView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
+
     def post(self, request):
         print(">>> GoogleAuthAPIView called")
         print("Token from frontend:", request.data.get("token"))
@@ -250,7 +251,9 @@ class GoogleAuthAPIView(APIView):
         try:
             CLIENT_ID = settings.GOOGLE_CLIENT_ID
             print("CLIENT ID", CLIENT_ID)
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
+            idinfo = id_token.verify_oauth2_token(
+                token, google_requests.Request(), CLIENT_ID
+            )
             email = idinfo["email"]
             name = idinfo.get("name", "")
             picture = idinfo.get("picture")
@@ -297,32 +300,26 @@ class GoogleAuthAPIView(APIView):
 
         except ValueError as e:
             print("Token verification error:", str(e))
-            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        res = Response(status=200)
+        res = Response({"message": "Logged out"}, status=status.HTTP_200_OK)
+        try:
+            refresh_token = request.COOKIES.get("refresh_token")
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+        except Exception:
+            pass
 
-        res.set_cookie(
-            key="access_token",
-            value="",
-            httponly=True,
-            secure=True,
-            samesite="None",
-            max_age=0,
-        )
-
-        res.set_cookie(
-            key="refresh_token",
-            value="",
-            httponly=True,
-            secure=True,
-            samesite="None",
-            max_age=0,
-        )
+        res.delete_cookie("access_token", samesite="None")
+        res.delete_cookie("refresh_token", samesite="None")
 
         return res
 

@@ -3,7 +3,8 @@ import string
 from django.utils import timezone
 from datetime import timedelta
 from users.models import VerificationCode
-from ..tasks import send_registration_code
+from ..tasks import send_registration_code, send_booking_verification
+from core.models import VerificationLink
 
 def generate_verification_code():
     return ''.join(random.choices(string.digits, k=6))
@@ -23,4 +24,17 @@ def create_verification_code(email):
         user_email=email,
         security_code=code,
     )
-    
+
+
+def create_verification_link(email, booking):
+    verification_link = VerificationLink.objects.create(
+        email=email,
+        booking=booking
+    )
+
+    link = f'http://localhost:5173/bookings/verify-booking/{verification_link.token}'
+
+    send_booking_verification.delay(
+        user_email=email,
+        verification_link=link
+    )

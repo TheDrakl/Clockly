@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 
 class BookingSerializer(serializers.Serializer):
+    status = serializers.CharField()
     start_time = serializers.TimeField()
     customer_name = serializers.CharField()
     customer_email = serializers.EmailField()

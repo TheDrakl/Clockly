@@ -13,6 +13,8 @@ from .serializers import BookingSerializer
 from clients.api.serializers import ServiceSerializer
 from datetime import timedelta
 from core.tasks import send_appointment_email
+from core.utils.verification import create_verification_link
+from core.models import VerificationLink
 
 class AvailableTimesView(APIView):
     permission_classes = [AllowAny]
@@ -44,6 +46,7 @@ class BookTimeView(APIView):
         service = get_object_or_404(Service, id=service_id)
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
         
+        status = serializer.validated_data['status']
         start_time = serializer.validated_data['start_time']
         customer_name = serializer.validated_data['customer_name']
         customer_email = serializer.validated_data['customer_email']
@@ -87,17 +90,40 @@ class BookTimeView(APIView):
             email_sent=True,
         )
 
-        send_appointment_email.delay(
-            customer_name=customer_name,
-            service_name=service.name,
-            appointment_date=date_obj,
-            start_time=start_time,
-            end_time=end_time,
-            customer_email=customer_email
-        )
+        create_verification_link(email=customer_email, booking=booking)
+
+
+        # send_appointment_email.delay(
+        #     customer_name=customer_name,
+        #     service_name=service.name,
+        #     appointment_date=date_obj,
+        #     start_time=start_time,
+        #     end_time=end_time,
+        #     customer_email=customer_email
+        # )
 
 
         return Response({"message": "Booking confirmed!"}, status=201)
+    
+
+class VerifyBookTimeAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        token = self.kwargs.get('token')
+        if not token:
+            raise ValueError("Token must be set in parameters!")
+        
+        verification_link = get_object_or_404(VerificationLink, token=token)
+        
+        if verification_link.is_expired():
+            return Response({"error": "Link has expired"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        booking = verification_link.booking
+        booking.status = 'confirmed'
+        booking.save()
+        
+        return Response({'message': "Booking has been successfully confirmed!"}, status=status.HTTP_200_OK)
+
 
 
 class ServicesListAPIView(generics.ListAPIView):
