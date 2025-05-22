@@ -6,6 +6,8 @@ import api from "../api/api";
 import ErrorMessage from "../components/ErrorMessage.jsx";
 
 const Bookings = () => {
+  const [originalBooking, setOriginalBooking] = useState(null);
+  const [noAvailableSlot, setNoAvailableSlot] = useState(false);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -78,12 +80,16 @@ const Bookings = () => {
       const updated = await api.get("/api/client/me/");
       setUserData(updated.data);
     } catch (err) {
-      setError(err.message);
+      if (err.response.data.error === "No matching available slot found.") {
+        setNoAvailableSlot(true);
+      } else {
+        setError(err.response.data.error);
+      }
     }
   };
 
   const handleEditBooking = (booking) => {
-    setEditingBooking({
+    const formattedBooking = {
       id: booking.id,
       customer_name: booking.customer_name,
       customer_email: booking.customer_email,
@@ -93,35 +99,50 @@ const Bookings = () => {
       date: booking.end_datetime.split("T")[0],
       start_time: booking.start_time,
       email_sent: booking.email_sent,
-    });
+    };
+
+    setEditingBooking(formattedBooking);
+    setOriginalBooking(formattedBooking);
     setShowEdit(true);
   };
 
+  const isBookingChanged = (a, b) => {
+    return Object.keys(a).some((key) => a[key] !== b[key]);
+  };
+
   const handleUpdateBooking = async (e) => {
+    console.log(error);
     e.preventDefault();
 
+    if (!isBookingChanged(originalBooking, editingBooking)) {
+      setShowEdit(false);
+      setNoAvailableSlot(false);
+      return;
+    }
+
     try {
-      const response = await api.put(
-        `/api/client/bookings/${editingBooking.id}/`,
-        {
-          customer_name: editingBooking.customer_name,
-          customer_email: editingBooking.customer_email,
-          customer_phone: editingBooking.customer_phone,
-          service_id: parseInt(editingBooking.service),
-          date: editingBooking.date,
-          status: editingBooking.status,
-          start_time: editingBooking.start_time,
-          email_sent: editingBooking.email_sent,
-        }
-      );
+      await api.put(`/api/client/bookings/${editingBooking.id}/`, {
+        customer_name: editingBooking.customer_name,
+        customer_email: editingBooking.customer_email,
+        customer_phone: editingBooking.customer_phone,
+        service_id: parseInt(editingBooking.service),
+        date: editingBooking.date,
+        status: editingBooking.status,
+        start_time: editingBooking.start_time,
+        email_sent: editingBooking.email_sent,
+      });
 
       setShowEdit(false);
+      setNoAvailableSlot(false);
 
-      // Refresh user data
       const updated = await api.get("/api/client/me/");
       setUserData(updated.data);
     } catch (err) {
-      setError(err.message);
+      if (err.response.data.error === "No matching available slot found.") {
+        setNoAvailableSlot(true);
+      } else {
+        setError(err.response.data.error);
+      }
     }
   };
 
@@ -130,6 +151,8 @@ const Bookings = () => {
       await api.delete(`/api/client/bookings/${editingBooking.id}/`);
 
       setShowEdit(false);
+      setNoAvailableSlot(false);
+
       setShowDelete(false);
 
       // Refresh user data
@@ -161,7 +184,7 @@ const Bookings = () => {
   return (
     <div className="min-h-screen bg-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[100rem] mx-auto">
-        {!userData?.Bookings && (
+        {userData?.Bookings && (
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
               Your Bookings
@@ -171,14 +194,14 @@ const Bookings = () => {
             </p>
           </div>
         )}
-        {userData?.Bookings && (
+        {!userData?.Bookings && (
           <div className="text-center">
             <h2 className="text-1xl font-extrabold text-white sm:text-3xl">
               You don't have any bookings yet!
             </h2>
           </div>
         )}
-        {error && <ErrorMessage error={error} />}
+        {error && !noAvailableSlot && <ErrorMessage error={error} />}
         <div className="mt-8 flex justify-center">
           <button
             onClick={() => setShowForm(true)}
@@ -190,8 +213,19 @@ const Bookings = () => {
         </div>
         {showForm && (
           <div className="fixed inset-0 bg-bg bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <div className="bg-bg p-6 rounded-lg shadow-lg w-full max-w-md">
               <h3 className="text-2xl font-semibold mb-4">Add New Booking</h3>
+              {noAvailableSlot && (
+                <div className="mb-4 p-3 bg-bg-card border-bg-card shadow-md text-red-700 rounded">
+                  <p className="text-sm font-medium">
+                    No available time slot was found for the selected date and
+                    time.
+                  </p>
+                  <p className="text-sm mt-1">
+                    Please choose a different time or date, and try again.
+                  </p>
+                </div>
+              )}
               <form onSubmit={handleFormSubmit}>
                 {[
                   {
@@ -211,12 +245,12 @@ const Bookings = () => {
                   },
                 ].map(({ label, key, type }) => (
                   <div className="mb-4" key={key}>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-white">
                       {label}
                     </label>
                     <input
                       type={type}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       value={newBooking[key]}
                       onChange={(e) =>
                         setNewBooking({ ...newBooking, [key]: e.target.value })
@@ -227,11 +261,11 @@ const Bookings = () => {
                 ))}
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Service
                   </label>
                   <select
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={newBooking.service}
                     onChange={(e) =>
                       setNewBooking({ ...newBooking, service: e.target.value })
@@ -248,12 +282,12 @@ const Bookings = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Date
                   </label>
                   <input
                     type="date"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={newBooking.date}
                     onChange={(e) =>
                       setNewBooking({ ...newBooking, date: e.target.value })
@@ -263,12 +297,12 @@ const Bookings = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Start Time
                   </label>
                   <input
                     type="time"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={newBooking.start_time}
                     onChange={(e) =>
                       setNewBooking({
@@ -281,11 +315,11 @@ const Bookings = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Status
                   </label>
                   <select
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={newBooking.status}
                     onChange={(e) =>
                       setNewBooking({ ...newBooking, status: e.target.value })
@@ -314,7 +348,7 @@ const Bookings = () => {
                   />
                   <label
                     htmlFor="send-email"
-                    className="ml-2 block text-sm text-gray-700"
+                    className="ml-2 block text-sm text-white"
                   >
                     Send email notification
                   </label>
@@ -343,8 +377,19 @@ const Bookings = () => {
         {/* Booking Editing */}
         {showEdit && editingBooking && (
           <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <div className="bg-bg p-6 rounded-lg shadow-lg w-full max-w-md">
               <h3 className="text-2xl font-semibold mb-4">Edit Booking</h3>
+              {noAvailableSlot && (
+                <div className="mb-4 p-3 bg-bg-card border-bg-card shadow-md text-red-700 rounded">
+                  <p className="text-sm font-medium">
+                    No available time slot was found for the selected date and
+                    time.
+                  </p>
+                  <p className="text-sm mt-1">
+                    Please choose a different time or date, and try again.
+                  </p>
+                </div>
+              )}
               <form onSubmit={handleUpdateBooking}>
                 {[
                   {
@@ -364,12 +409,12 @@ const Bookings = () => {
                   },
                 ].map(({ label, key, type }) => (
                   <div className="mb-4" key={key}>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-white">
                       {label}
                     </label>
                     <input
                       type={type}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       value={editingBooking[key] || ""}
                       onChange={(e) =>
                         setEditingBooking({
@@ -383,11 +428,11 @@ const Bookings = () => {
                 ))}
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Service
                   </label>
                   <select
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={editingBooking.service || ""}
                     onChange={(e) =>
                       setEditingBooking({
@@ -407,12 +452,12 @@ const Bookings = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Date
                   </label>
                   <input
                     type="date"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={editingBooking.date || ""}
                     onChange={(e) =>
                       setEditingBooking({
@@ -425,12 +470,12 @@ const Bookings = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Start Time
                   </label>
                   <input
                     type="time"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={editingBooking.start_time || ""}
                     onChange={(e) =>
                       setEditingBooking({
@@ -443,11 +488,11 @@ const Bookings = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-white">
                     Status
                   </label>
                   <select
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={editingBooking.status}
                     onChange={(e) =>
                       setEditingBooking({
@@ -474,7 +519,7 @@ const Bookings = () => {
                   />
                   <label
                     htmlFor="edit-send-email"
-                    className="ml-2 block text-sm text-gray-700"
+                    className="ml-2 block text-sm text-white"
                   >
                     Email notification status
                   </label>
@@ -484,7 +529,10 @@ const Bookings = () => {
                   <button
                     type="button"
                     className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    onClick={() => setShowEdit(false)}
+                    onClick={() => {
+                      setShowEdit(false);
+                      setNoAvailableSlot(false);
+                    }}
                   >
                     Cancel
                   </button>
