@@ -5,6 +5,20 @@ import api from "../api/api";
 import ErrorMessage from "../components/ErrorMessage.jsx";
 import { useAuth } from "../contexts/AuthContext";
 
+const convertMinutesToHHMMSS = (minutes) => {
+  const mins = parseInt(minutes, 10);
+  const hrs = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return `${hrs.toString().padStart(2, "0")}:${remMins
+    .toString()
+    .padStart(2, "0")}:00`;
+};
+
+const convertHHMMSSToMinutes = (hhmmss) => {
+  const [hours, minutes] = hhmmss.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
 const Services = () => {
   const [services, setServices] = useState([]);
   const [error, setError] = useState("");
@@ -16,10 +30,12 @@ const Services = () => {
     description: "",
     price: "",
     duration: "",
-    featured_img: ""
+    featured_img: null,
   });
   const [editingService, setEditingService] = useState(null);
   const [originalService, setOriginalService] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [editImagePreview, setEditImagePreview] = useState(null);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -43,16 +59,51 @@ const Services = () => {
     return Object.keys(a).some((key) => a[key] !== b[key]);
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewService({ ...newService, featured_img: file });
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditingService({ ...editingService, featured_img: file });
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await api.post("/api/client/services/", {
-        name: newService.name,
-        description: newService.description,
-        price: parseFloat(newService.price),
-        duration: newService.duration,
-        featured_img: newService.featured_img
+      const formData = new FormData();
+      formData.append("name", newService.name);
+      formData.append("description", newService.description);
+      formData.append("price", parseFloat(newService.price));
+      formData.append("duration", convertMinutesToHHMMSS(newService.duration));
+      if (newService.featured_img) {
+        formData.append("featured_img", newService.featured_img);
+      }
+
+      const response = await api.post("/api/client/services/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       setShowForm(false);
@@ -61,8 +112,9 @@ const Services = () => {
         description: "",
         price: "",
         duration: "",
-        featured_img: ""
+        featured_img: null,
       });
+      setImagePreview(null);
 
       const updated = await api.get("/api/client/services/");
       setServices(updated.data);
@@ -77,12 +129,13 @@ const Services = () => {
       name: service.name,
       description: service.description,
       price: service.price.toString(),
-      duration: service.duration,
-      featured_img: service.featured_img || ""
+      duration: convertHHMMSSToMinutes(service.duration),
+      featured_img: service.featured_img || null,
     };
 
     setEditingService(formattedService);
     setOriginalService(formattedService);
+    setEditImagePreview(service.featured_img || null);
     setShowEdit(true);
   };
 
@@ -95,15 +148,31 @@ const Services = () => {
     }
 
     try {
-      await api.put(`/api/client/services/${editingService.id}/`, {
-        name: editingService.name,
-        description: editingService.description,
-        price: parseFloat(editingService.price),
-        duration: editingService.duration,
-        featured_img: editingService.featured_img
+      const formData = new FormData();
+      formData.append("name", editingService.name);
+      formData.append("description", editingService.description);
+      formData.append("price", parseFloat(editingService.price));
+      formData.append(
+        "duration",
+        convertMinutesToHHMMSS(editingService.duration)
+      );
+
+      // Only append the image if it's a file (new upload)
+      if (editingService.featured_img instanceof File) {
+        formData.append("featured_img", editingService.featured_img);
+      } else if (editingService.featured_img === null) {
+        // If image was removed
+        formData.append("featured_img", "");
+      }
+
+      await api.put(`/api/client/services/${editingService.id}/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       setShowEdit(false);
+      setEditImagePreview(null);
 
       const updated = await api.get("/api/client/services/");
       setServices(updated.data);
@@ -118,6 +187,7 @@ const Services = () => {
 
       setShowEdit(false);
       setShowDelete(false);
+      setEditImagePreview(null);
 
       const updated = await api.get("/api/client/services/");
       setServices(updated.data);
@@ -129,6 +199,16 @@ const Services = () => {
   function onClose() {
     setShowDelete(false);
   }
+
+  const removeImage = () => {
+    setNewService({ ...newService, featured_img: null });
+    setImagePreview(null);
+  };
+
+  const removeEditImage = () => {
+    setEditingService({ ...editingService, featured_img: null });
+    setEditImagePreview(null);
+  };
 
   if (error) {
     return <ErrorMessage error={error} />;
@@ -166,8 +246,6 @@ const Services = () => {
                   { label: "Name", key: "name", type: "text" },
                   { label: "Description", key: "description", type: "text" },
                   { label: "Price ($)", key: "price", type: "number" },
-                  { label: "Duration (min)", key: "duration", type: "number" },
-                  { label: "Image URL", key: "featured_img", type: "text" }
                 ].map(({ label, key, type }) => (
                   <div className="mb-4" key={key}>
                     <label className="block text-sm font-medium text-white">
@@ -180,16 +258,69 @@ const Services = () => {
                       onChange={(e) =>
                         setNewService({ ...newService, [key]: e.target.value })
                       }
-                      required={key !== "featured_img"}
+                      required
                     />
                   </div>
                 ))}
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-white">
+                    Duration (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Enter duration in minutes"
+                    className="mt-1 block w-full border bg-bg-card border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    value={newService.duration}
+                    onChange={(e) =>
+                      setNewService({ ...newService, duration: e.target.value })
+                    }
+                    required
+                    min={1}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-white">
+                    Service Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-indigo-50 file:text-indigo-700
+              hover:file:bg-indigo-100"
+                    onChange={handleImageChange}
+                  />
+                  {imagePreview && (
+                    <div className="mt-2 relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="h-32 w-full object-contain rounded"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                        onClick={removeImage}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex justify-end gap-4">
                   <button
                     type="button"
                     className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    onClick={() => setShowForm(false)}
+                    onClick={() => {
+                      setShowForm(false);
+                      setImagePreview(null);
+                    }}
                   >
                     Cancel
                   </button>
@@ -215,7 +346,6 @@ const Services = () => {
                   { label: "Description", key: "description", type: "text" },
                   { label: "Price ($)", key: "price", type: "number" },
                   { label: "Duration (min)", key: "duration", type: "number" },
-                  { label: "Image URL", key: "featured_img", type: "text" }
                 ].map(({ label, key, type }) => (
                   <div className="mb-4" key={key}>
                     <label className="block text-sm font-medium text-white">
@@ -228,19 +358,55 @@ const Services = () => {
                       onChange={(e) =>
                         setEditingService({
                           ...editingService,
-                          [key]: e.target.value
+                          [key]: e.target.value,
                         })
                       }
-                      required={key !== "featured_img"}
+                      required
                     />
                   </div>
                 ))}
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-white">
+                    Service Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="mt-1 block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-indigo-50 file:text-indigo-700
+                      hover:file:bg-indigo-100"
+                    onChange={handleEditImageChange}
+                  />
+                  {editImagePreview && (
+                    <div className="mt-2 relative">
+                      <img
+                        src={editImagePreview}
+                        alt="Preview"
+                        className="h-32 w-full object-contain rounded"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                        onClick={removeEditImage}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex justify-end gap-4">
                   <button
                     type="button"
                     className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    onClick={() => setShowEdit(false)}
+                    onClick={() => {
+                      setShowEdit(false);
+                      setEditImagePreview(null);
+                    }}
                   >
                     Cancel
                   </button>
@@ -331,7 +497,7 @@ const ServiceCard = ({ service, onEdit }) => {
           <span className="text-lg font-semibold text-purple-400">
             ${service.price}
           </span>
-          <span className="text-sm text-gray-400">{service.duration} min</span>
+          <span className="text-sm text-gray-400">{service.duration}</span>
         </div>
       </div>
     </div>

@@ -72,6 +72,7 @@ DATABASES = {
     'default': {
         "ENGINE": os.getenv("DB_ENGINE"),
         "HOST": os.getenv('DB_HOST'),
+        # For Docker
         # 'HOST': 'db',
         "PORT": os.getenv("DB_PORT"),
         "USER": os.getenv("DB_USER"),
@@ -140,7 +141,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
-    # 'users.auth_backends.EmailAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
