@@ -102,7 +102,6 @@ class BookTimeView(APIView):
 
 class VerifyBookTimeAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        print("📩 VERIFY REQUEST RECEIVED")
         token_str = self.kwargs.get('token')
         if not token_str:
             raise ValueError("Token must be set in parameters!")
@@ -116,6 +115,9 @@ class VerifyBookTimeAPIView(APIView):
 
         if verification_link.is_expired():
             return Response({"error": "Link has expired"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if verification_link.verified == True:
+            return Response({"error": "Booking is already confirmed!"}, status=status.HTTP_200_OK)
 
         with transaction.atomic():
             booking = (
@@ -132,7 +134,8 @@ class VerifyBookTimeAPIView(APIView):
             booking.status = 'confirmed'
             booking.save()
 
-            verification_link.delete()
+            verification_link.verified = False
+            verification_link.save()
 
             send_appointment_email.delay(
                 customer_name=booking.customer_name,

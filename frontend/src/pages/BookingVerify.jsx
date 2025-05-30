@@ -58,7 +58,6 @@ function BookingVerify() {
             >
               Return to Home
             </Button>
-            ƒ
           </>
         )}
 

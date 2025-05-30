@@ -172,7 +172,7 @@ function UserBook() {
         )}
 
         {isServiceSelection &&
-          !availableSlots.length &&
+          !availableSlots.length && !success &&
           services.length > 0 && (
             <div className="space-y-6">
               <h2 className="text-3xl font-bold text-white text-center">
