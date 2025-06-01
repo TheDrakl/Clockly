@@ -2,7 +2,7 @@ import random
 import string
 from django.utils import timezone
 from datetime import timedelta
-from users.models import VerificationCode
+from core.models import VerificationCode
 from ..tasks import send_registration_code, send_booking_verification
 from core.models import VerificationLink
 

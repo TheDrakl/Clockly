@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.core import mail
-from users.models import VerificationCode
+from core.models import VerificationCode
 
 class UserTests(APITestCase):
 

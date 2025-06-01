@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from ..models import AvailabilitySlot, UnavailableSlot, Booking
+from core.models import AvailabilitySlot, UnavailableSlot, Booking
 from django.utils import timezone
 
 def generate_available_times(user, date, service_duration):

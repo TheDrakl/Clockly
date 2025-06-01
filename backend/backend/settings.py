@@ -28,10 +28,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-
-    'users',
-    'clients',
-    'bookings',
     'core',
 
     'django_celery_beat',
@@ -138,7 +134,7 @@ SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = "require-corp"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'core.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -147,7 +143,7 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'users.auth_backends.CookieJWTAuthentication',
+        'core.auth_backends.CookieJWTAuthentication',
     ),
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',

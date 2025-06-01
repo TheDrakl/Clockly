@@ -3,8 +3,7 @@ from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from ics import Calendar, Event
 from io import BytesIO
-from users.models import VerificationCode
-from clients.models import Booking
+from core.models import VerificationCode, Booking
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.db import transaction
