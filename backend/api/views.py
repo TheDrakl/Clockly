@@ -19,6 +19,12 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
+from rest_framework_extensions.cache.mixins import CacheResponseMixin
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
+
 from .serializers import (
     LoginSerializer,
     RegisterSerializer,
@@ -393,11 +399,23 @@ class ServiceListCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Service.objects.filter(user=self.request.user)
-        return queryset
+        return Service.objects.filter(user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        cache_key = f"service_list_user_{request.user.id}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        cache.set(cache_key, serializer.data, timeout=300)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        cache_key = f"service_list_user_{self.request.user.id}"
+        cache.delete(cache_key)
 
 
 class ServiceRetrieveUpdateDestroyAPIVIew(generics.RetrieveUpdateDestroyAPIView):
@@ -414,8 +432,17 @@ class AvailabilitySlotListCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = AvailabilitySlot.objects.filter(user=self.request.user)
-        return queryset
+        return AvailabilitySlot.objects.filter(user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        cache_key = f"slot_list_user_{request.user.id}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        cache.set(cache_key, serializer.data, timeout=300)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -443,6 +470,9 @@ class BookingSlotListCreateAPIView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+
+
+# CLIENT
 
 class BookingSlotClientListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
