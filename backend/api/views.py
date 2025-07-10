@@ -67,6 +67,7 @@ from datetime import datetime, timedelta
 import uuid
 from core.utils.send_prompt import get_gpt_response
 
+User = get_user_model()
 
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
