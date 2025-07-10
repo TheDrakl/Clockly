@@ -35,6 +35,9 @@ from .serializers import (
     ServiceSerializer,
     BookingClientSerializer,
     UserSerializer,
+    ChatSessionsSerializer,
+    ChatMessageSerializer,
+    SendMessageSerializer,
 )
 
 from core.models import (
@@ -44,6 +47,8 @@ from core.models import (
     AvailabilitySlot,
     Service,
     VerificationLink,
+    ChatMessage,
+    ChatSession,
 )
 
 from core.tasks import (
@@ -60,8 +65,7 @@ from google.auth.transport import requests as google_requests
 
 from datetime import datetime, timedelta
 import uuid
-
-User = get_user_model()
+from core.utils.send_prompt import get_gpt_response
 
 
 class CustomTokenRefreshView(TokenRefreshView):
@@ -471,8 +475,8 @@ class BookingSlotListCreateAPIView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-
 # CLIENT
+
 
 class BookingSlotClientListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -834,3 +838,72 @@ class ServicesListAPIView(generics.ListAPIView):
         if not queryset.exists():
             raise NotFound("No services found for this user.")
         return queryset
+
+
+# ChatBot
+
+
+class GetChatSessionsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, reqeust, *args, **kwargs):
+        user = self.request.user
+        sessions = ChatSession.objects.filter(user=user).order_by("-started_at")
+        serializer = ChatSessionsSerializer(sessions, many=True)
+        return Response(serializer.data)
+
+
+class GetChatHistoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        session_id = self.kwargs.get("id")
+        user = request.user
+        try:
+            session = ChatSession.objects.get(id=session_id, user=user)
+        except ChatSession.DoesNotExist:
+            raise NotFound("Chat session not found or you do not have permission.")
+
+        messages = ChatMessage.objects.filter(session=session).order_by("timestamp")
+        serializer = ChatMessageSerializer(messages, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SendMessageAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        session_id = self.kwargs.get("id")
+        user = request.user
+        serializer = SendMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            user_msg = serializer.validated_data["message"]
+            try:
+                session = ChatSession.objects.get(id=session_id, user=user)
+            except ChatSession.DoesNotExist:
+                raise NotFound("Chat session not found or you do not have permission.")
+            ChatMessage.objects.create(session=session, sender="user", message=user_msg)
+
+            previous_messages = ChatMessage.objects.filter(session=session).order_by(
+                "timestamp"
+            )
+
+            messages = [
+                {"role": "system", "content": "You are a helpful ChatBot assistant."}
+            ]
+            for msg in previous_messages:
+                role = "user" if msg.sender == "user" else "assistant"
+                messages.append({"role": role, "content": msg.message})
+            # Send prompt to the AI model
+            try:
+                response_msg = get_gpt_response(messages=messages)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            ChatMessage.objects.create(
+                session=session, sender="bot", message=response_msg
+            )
+            return Response({"response_msg": response_msg}, status=status.HTTP_200_OK)
+
+        else:
+            return Response(serializer.errors)

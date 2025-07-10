@@ -24,6 +24,9 @@ from .views import (
     BookTimeView,
     ServicesListAPIView,
     VerifyBookTimeAPIView,
+    GetChatSessionsAPIView,
+    GetChatHistoryAPIView,
+    SendMessageAPIView,
 )
 
 urlpatterns = [
@@ -40,7 +43,14 @@ urlpatterns = [
     path("auth/verify/resend/", ResendCodeAPIView.as_view(), name="resend-verify-code"),
     # OAuth Endpoints
     path("auth/oauth/google/", GoogleAuthAPIView.as_view(), name="google-auth"),
-    
+    # ChatBot
+    path("chat/sessions/", GetChatSessionsAPIView.as_view(), name="get-all-sessions"),
+    path(
+        "chat/<int:id>/history/",
+        GetChatHistoryAPIView.as_view(),
+        name="get-messages-for-session",
+    ),
+    path("chat/<int:id>/send-msg/", SendMessageAPIView.as_view(), name="send-msg"),
     # Client
     path("client/services/", ServiceListCreateAPIView.as_view(), name="services"),
     path(
@@ -49,20 +59,25 @@ urlpatterns = [
         name="service-detail",
     ),
     path(
-        "client/availability-slots/", AvailabilitySlotListCreateAPIView.as_view(), name="slots"
+        "client/availability-slots/",
+        AvailabilitySlotListCreateAPIView.as_view(),
+        name="slots",
     ),
     path(
         "client/availability-slots/<int:id>/",
         AvailabilitySlotRetrieveUpdateDestroyAPIVIew.as_view(),
         name="slot-detail",
     ),
-    path("client/bookings/", BookingSlotClientListCreateAPIView.as_view(), name="bookings"),
+    path(
+        "client/bookings/",
+        BookingSlotClientListCreateAPIView.as_view(),
+        name="bookings",
+    ),
     path(
         "bookings/<int:id>/",
         BookingRetrieveUpdateDestroyAPIVIew.as_view(),
         name="booking-detai;",
     ),
-
     # Dashboard
     path("client/me/", DashboardAPIView.as_view(), name="dashboard"),
     path(
@@ -70,8 +85,15 @@ urlpatterns = [
         VerifyBookTimeAPIView.as_view(),
         name="verify-booking",
     ),
-    path("bookings/services/<str:user_slug>/", ServicesListAPIView.as_view(), name="services"),
-    path("bookings/<str:user_slug>/<int:service_id>/<str:date>/", AvailableTimesView.as_view()),
+    path(
+        "bookings/services/<str:user_slug>/",
+        ServicesListAPIView.as_view(),
+        name="services",
+    ),
+    path(
+        "bookings/<str:user_slug>/<int:service_id>/<str:date>/",
+        AvailableTimesView.as_view(),
+    ),
     path(
         "bookings/<str:user_slug>/<str:date>/",
         AvailableTimesView.as_view(),

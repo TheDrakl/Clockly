@@ -2,7 +2,7 @@ from rest_framework import serializers
 from core.models import CustomUser
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
-from core.models import Service, AvailabilitySlot, Booking
+from core.models import Service, AvailabilitySlot, Booking, ChatMessage, ChatSession
 from core.utils.enums import Weekday
 
 User = get_user_model()
@@ -121,3 +121,26 @@ class BookingSerializer(serializers.Serializer):
     customer_name = serializers.CharField()
     customer_email = serializers.EmailField()
     customer_phone = serializers.CharField(max_length=20, required=False)
+
+
+class ChatSessionsSerializer(serializers.ModelSerializer):
+    last_message = serializers.SerializerMethodField()
+    class Meta:
+        model = ChatSession
+        fields = ["id", "started_at", "last_message"]
+
+    def get_last_message(self, obj):
+        last_msg = obj.messages.order_by('-timestamp').first()
+        if last_msg:
+            return last_msg.message
+        return None
+    
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = ["id", "message", "sender"]
+
+
+class SendMessageSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=365)
