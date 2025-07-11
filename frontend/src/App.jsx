@@ -11,6 +11,7 @@ import BookingVerify from "./pages/BookingVerify.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
 import UserBook from "./pages/UserBook.jsx";
+import ChatBot from "./components/ChatBot.jsx";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import {
@@ -185,8 +186,15 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <ChatBotWithAuth />
     </AuthProvider>
   );
+}
+
+function ChatBotWithAuth() {
+  const { isAuthenticated } = useAuth();
+
+  return isAuthenticated ? <ChatBot /> : null;
 }
 
 export default App;

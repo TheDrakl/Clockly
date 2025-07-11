@@ -69,6 +69,7 @@ from core.utils.send_prompt import get_gpt_response
 
 User = get_user_model()
 
+
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
@@ -853,6 +854,14 @@ class GetChatSessionsAPIView(APIView):
         serializer = ChatSessionsSerializer(sessions, many=True)
         return Response(serializer.data)
 
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        session = ChatSession.objects.create(user=user)
+        return Response(
+            {"message": "Session created successfully!", "session_id": session.id},
+            status=status.HTTP_201_CREATED,
+        )
+
 
 class GetChatHistoryAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -868,6 +877,20 @@ class GetChatHistoryAPIView(APIView):
         messages = ChatMessage.objects.filter(session=session).order_by("timestamp")
         serializer = ChatMessageSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        session_id = self.kwargs.get("id")
+        user = request.user
+        try:
+            session = ChatSession.objects.get(id=session_id, user=user)
+        except ChatSession.DoesNotExist:
+            raise NotFound("Chat session not found or you do not have permission.")
+
+        session.delete()
+
+        return Response(
+            {"message": "Session was deleted successfully!"}, status=status.HTTP_200_OK
+        )
 
 
 class SendMessageAPIView(APIView):
@@ -890,7 +913,10 @@ class SendMessageAPIView(APIView):
             )
 
             messages = [
-                {"role": "system", "content": "You are a helpful ChatBot assistant."}
+                {
+                    "role": "system",
+                    "content": 'You are a helpful assistant for Clockly, a website where users can book appointments for various services such as haircuts, massages, and consultations. Your job is to help users understand how to use the Clockly website: viewing available time slots, booking services, receiving confirmation emails, or managing their appointments.\n\nDo NOT answer questions unrelated to Clockly or its services. If the user asks about programming, technology, or anything outside the scope of Clockly, politely respond: "I\'m here to assist with Clockly-related questions. Please contact our support team if you need help with something else."',
+                }
             ]
             for msg in previous_messages:
                 role = "user" if msg.sender == "user" else "assistant"
