@@ -11,6 +11,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', "backend.local"]

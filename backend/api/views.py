@@ -59,6 +59,7 @@ from core.tasks import (
 
 from core.utils.verification import create_verification_code, create_verification_link
 from core.utils.available_times import generate_available_times
+from core.utils.chatbot.ai_router import handle_user_input
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -898,38 +899,29 @@ class SendMessageAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         session_id = self.kwargs.get("id")
-        user = request.user
         serializer = SendMessageSerializer(data=request.data)
+
+        user = request.user
+
         if serializer.is_valid():
             user_msg = serializer.validated_data["message"]
             try:
                 session = ChatSession.objects.get(id=session_id, user=user)
             except ChatSession.DoesNotExist:
                 raise NotFound("Chat session not found or you do not have permission.")
+
             ChatMessage.objects.create(session=session, sender="user", message=user_msg)
 
-            previous_messages = ChatMessage.objects.filter(session=session).order_by(
-                "timestamp"
-            )
-
-            messages = [
-                {
-                    "role": "system",
-                    "content": 'You are a helpful assistant for Clockly, a website where users can book appointments for various services such as haircuts, massages, and consultations. Your job is to help users understand how to use the Clockly website: viewing available time slots, booking services, receiving confirmation emails, or managing their appointments.\n\nDo NOT answer questions unrelated to Clockly or its services. If the user asks about programming, technology, or anything outside the scope of Clockly, politely respond: "I\'m here to assist with Clockly-related questions. Please contact our support team if you need help with something else."',
-                }
-            ]
-            for msg in previous_messages:
-                role = "user" if msg.sender == "user" else "assistant"
-                messages.append({"role": role, "content": msg.message})
-            # Send prompt to the AI model
+            # Use the new AI router logic: pass only the user's message
             try:
-                response_msg = get_gpt_response(messages=messages)
+                response_msg = handle_user_input(user_msg, user=user)
             except Exception as e:
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             ChatMessage.objects.create(
                 session=session, sender="bot", message=response_msg
             )
+
             return Response({"response_msg": response_msg}, status=status.HTTP_200_OK)
 
         else:

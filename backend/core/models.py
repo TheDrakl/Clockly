@@ -211,3 +211,12 @@ class ChatMessage(models.Model):
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     
+
+
+class MyDocument(models.Model):
+    source = models.CharField(max_length=512)
+    content = models.TextField()
+    embedding = models.JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.source} ({len(self.content)} chars)"
